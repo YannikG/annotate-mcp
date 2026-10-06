@@ -52,6 +52,22 @@ if grep -q '^## Agents$' "$render/Home.md"; then
   echo "Home must not list agents beside the installation guide" >&2
   exit 1
 fi
+if grep -q '^# Documentation$' "$render/Home.md"; then
+  echo "wiki home must not be the docs index" >&2
+  exit 1
+fi
+if ! grep -q 'https://github.com/frontendxlab/opencode-annotate' "$render/Home.md"; then
+  echo "wiki home should explain the project for people using it" >&2
+  exit 1
+fi
+if ! grep -q '](Installation-guide)' "$render/Home.md"; then
+  echo "wiki home should link the installation guide" >&2
+  exit 1
+fi
+if ! grep -q 'https://github.com/YannikG/annotate-mcp/wiki' "$root/README.md"; then
+  echo "README must link to the wiki" >&2
+  exit 1
+fi
 if ! grep -q 'https://github.com/YannikG/annotate-mcp/blob/main/docs/vocabulary.md' "$render/Development-guide.md"; then
   echo "expected vocabulary to stay a repo file link" >&2
   exit 1

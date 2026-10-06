@@ -16,7 +16,7 @@ import sys
 root = pathlib.Path(sys.argv[1])
 render_only = sys.argv[2]
 pages = {
-    "docs/README.md": "Home",
+    "docs/wiki/home.md": "Home",
     "docs/installation/README.md": "Installation-guide",
     "docs/installation/claude-code/README.md": "Installation-guide-Claude-Code",
     "docs/installation/codex/README.md": "Installation-guide-Codex",
