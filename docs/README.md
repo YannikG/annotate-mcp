@@ -21,12 +21,3 @@ The vocabulary page is the words. The design page is the system shape.
 | Module map | [Design](design.md) |
 | Words | [Vocabulary](vocabulary.md) |
 | UI rules | [UI](ui.md) |
-
-## Agents
-
-| Agent | Page |
-| --- | --- |
-| Claude Code | [installation/claude-code/README.md](installation/claude-code/README.md) |
-| Codex | [installation/codex/README.md](installation/codex/README.md) |
-| Cursor | [installation/cursor/README.md](installation/cursor/README.md) |
-| OpenCode | [installation/opencode/README.md](installation/opencode/README.md) |

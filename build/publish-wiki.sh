@@ -18,17 +18,32 @@ render_only = sys.argv[2]
 pages = {
     "docs/README.md": "Home",
     "docs/installation/README.md": "Installation-guide",
-    "docs/installation/claude-code/README.md": "Claude-Code",
-    "docs/installation/codex/README.md": "Codex",
-    "docs/installation/cursor/README.md": "Cursor",
-    "docs/installation/opencode/README.md": "OpenCode",
+    "docs/installation/claude-code/README.md": "Installation-guide-Claude-Code",
+    "docs/installation/codex/README.md": "Installation-guide-Codex",
+    "docs/installation/cursor/README.md": "Installation-guide-Cursor",
+    "docs/installation/opencode/README.md": "Installation-guide-OpenCode",
     "docs/development/README.md": "Development-guide",
     "docs/deployment/README.md": "Manual-deployment",
     "docs/contributing/README.md": "Contribution-guide",
     "docs/design.md": "Design",
-    "docs/vocabulary.md": "Vocabulary",
-    "docs/ui.md": "UI",
 }
+sidebar = """\
+**Use it**
+
+* [Home](Home)
+* [Installation guide](Installation-guide)
+  * [Claude Code](Installation-guide-Claude-Code)
+  * [Codex](Installation-guide-Codex)
+  * [Cursor](Installation-guide-Cursor)
+  * [OpenCode](Installation-guide-OpenCode)
+* [Manual deployment](Manual-deployment)
+
+**Work on it**
+
+* [Development guide](Development-guide)
+* [Contribution guide](Contribution-guide)
+* [Design](Design)
+"""
 link = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
 blob = "https://github.com/YannikG/annotate-mcp/blob/main/"
 
@@ -70,9 +85,15 @@ out_dir = pathlib.Path(render_only) if render_only else None
 if out_dir is None:
     sys.exit(0)
 out_dir.mkdir(parents=True, exist_ok=True)
+written = {f"{page}.md" for page in pages.values()}
+written.add("_Sidebar.md")
 for source, page in pages.items():
     body = rewrite(source, (root / source).read_text())
     (out_dir / f"{page}.md").write_text(body)
+(out_dir / "_Sidebar.md").write_text(sidebar)
+for path in out_dir.glob("*.md"):
+    if path.name not in written:
+        path.unlink()
 PY
 
 if [[ -n "$render_only" ]]; then
