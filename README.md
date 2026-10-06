@@ -2,6 +2,8 @@
 
 Annotate stores a plan as immutable Markdown revisions, records a review of one revision, and returns feedback to the agent.
 
+The guide for using it is on the [wiki](https://github.com/YannikG/annotate-mcp/wiki).
+
 ## Guides
 
 | Guide | Page |
