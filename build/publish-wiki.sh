@@ -87,9 +87,11 @@ fi
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 remote="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git"
-if ! git clone --depth 1 "$remote" "$work/wiki"; then
-  git init -b master "$work/wiki"
-  git -C "$work/wiki" remote add origin "$remote"
+clone_log="$work/clone.log"
+if ! git clone --depth 1 "$remote" "$work/wiki" >"$clone_log" 2>&1; then
+  sed "s#${GITHUB_TOKEN}#***#g" "$clone_log" >&2
+  echo "Cannot clone ${GITHUB_REPOSITORY}.wiki.git. Create the first wiki page at https://github.com/${GITHUB_REPOSITORY}/wiki, then re-run this workflow." >&2
+  exit 1
 fi
 "$0" --render "$work/wiki"
 git -C "$work/wiki" add -A

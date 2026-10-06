@@ -19,5 +19,6 @@ if (( test_status != 0 )) || printf '%s\n' "$test_output" | grep -q 'Configurati
   exit 1
 fi
 ./build/source-limits.sh
+./build/publish-wiki-test.sh
 dotnet build
 dotnet test
