@@ -26,7 +26,7 @@ Set `Annotate__TrustedStoryDomains__0` to the host. The next host is `Annotate__
 
 Read [docs/design.md](../design.md) and [docs/vocabulary.md](../vocabulary.md) before changing the code. Read [docs/ui.md](../ui.md) before changing `Components/` or `wwwroot/css/`.
 
-`build/check.sh` runs `dotnet format --verify-no-changes`, `ast-grep scan`, `ast-grep test`, `build/source-limits.sh`, `dotnet build`, and `dotnet test`. The line script fails when a `.cs` or `.razor` file under `src/` or `tests/`, or a `.css` file under `src/Annotate.Web`, is over 500 physical lines. It skips `bin`, `obj`, `Migrations`, and `*.g.cs`.
+`build/check.sh` runs `dotnet format --verify-no-changes`, `ast-grep scan`, `ast-grep test`, `build/source-limits.sh`, `build/publish-wiki-test.sh`, `dotnet build`, and `dotnet test`. The line script fails when a `.cs` or `.razor` file under `src/` or `tests/`, or a `.css` file under `src/Annotate.Web`, is over 500 physical lines. It skips `bin`, `obj`, `Migrations`, and `*.g.cs`.
 
 Once, point Git at the hooks in this repo:
 
