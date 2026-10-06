@@ -1,0 +1,25 @@
+@page "/projects"
+@inject IPlans Plans
+
+<PageTitle>Projects · Annotate</PageTitle>
+
+@if (model is not null)
+{
+    <ProjectsView Model="model" />
+}
+
+@code {
+    private ProjectsViewModel? model;
+
+    protected override async Task OnInitializedAsync()
+    {
+        IReadOnlyList<ProjectSummary> active = await Plans.ProjectsAsync(CancellationToken.None);
+        IReadOnlyList<ProjectSummary> archived = await Plans.ArchivedProjectsAsync(CancellationToken.None);
+        model = new ProjectsViewModel(Rows(active), Rows(archived));
+    }
+
+    private static ProjectRow[] Rows(IReadOnlyList<ProjectSummary> projects) => projects
+        .OrderBy(project => project.DisplayName, StringComparer.OrdinalIgnoreCase)
+        .Select(project => new ProjectRow(project.ProjectId.Value, project.DisplayName, project.PlanCount, project.FolderPath))
+        .ToArray();
+}

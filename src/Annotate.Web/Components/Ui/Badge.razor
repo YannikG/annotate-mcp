@@ -1,0 +1,7 @@
+<span @attributes="AdditionalAttributes" class="badge" data-state="@Tone">@ChildContent</span>
+
+@code {
+    [Parameter] public string Tone { get; set; } = "neutral";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+}

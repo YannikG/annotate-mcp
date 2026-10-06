@@ -1,0 +1,64 @@
+@page "/revisions/{Id}"
+@inject IPlans Plans
+@inject IReviews Reviews
+
+<PageTitle>Annotate</PageTitle>
+
+@if (missing)
+{
+    <div class="frame">
+        <h1>Not found</h1>
+    </div>
+}
+else if (model is not null)
+{
+    <RevisionView Model="model">
+        <Header>
+            <div class="title-block">
+                <ProjectBreadcrumb ProjectId="@projectId" ProjectName="@projectName" />
+                <header class="page-title"><h1>Revision @model.Number</h1></header>
+            </div>
+        </Header>
+    </RevisionView>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = "";
+
+    private RevisionViewModel? model;
+
+    private bool missing;
+
+    private string? projectId;
+
+    private string? projectName;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        RevisionDetail? revision = await Plans.RevisionAsync(
+            new Annotate.Plans.Application.RevisionId(Id),
+            CancellationToken.None);
+        if (revision is null)
+        {
+            model = null;
+            missing = true;
+            return;
+        }
+
+        missing = false;
+        projectId = null;
+        projectName = null;
+        PlanDetail? plan = await Plans.PlanAsync(revision.PlanId, CancellationToken.None);
+        if (plan is not null)
+        {
+            ProjectSummary? project = await Plans.ProjectAsync(plan.ProjectId, CancellationToken.None);
+            projectId = project?.ProjectId.Value;
+            projectName = project?.DisplayName;
+        }
+
+        ReviewDetail? review = await Reviews.ForRevisionAsync(
+            new Annotate.Reviews.Application.RevisionId(Id), CancellationToken.None);
+        model = RevisionBody.From(revision, review?.Annotations);
+    }
+}

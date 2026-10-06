@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Annotate.Markdown/Annotate.Markdown.csproj" />
+    <Project Path="src/Annotate.Plans/Annotate.Plans.csproj" />
+    <Project Path="src/Annotate.Reviews/Annotate.Reviews.csproj" />
+    <Project Path="src/Annotate.Web/Annotate.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Annotate.Architecture.Tests/Annotate.Architecture.Tests.csproj" />
+    <Project Path="tests/Annotate.Markdown.Tests/Annotate.Markdown.Tests.csproj" />
+    <Project Path="tests/Annotate.Plans.Tests/Annotate.Plans.Tests.csproj" />
+    <Project Path="tests/Annotate.Reviews.Tests/Annotate.Reviews.Tests.csproj" />
+    <Project Path="tests/Annotate.Web.Tests/Annotate.Web.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,18 @@
+id: no-region
+language: CSharp
+severity: error
+message: "#region is not allowed."
+files:
+  - src/**/*.cs
+  - src/**/*.razor
+  - tests/**/*.cs
+  - tests/**/*.razor
+ignores:
+  - "**/bin/**"
+  - "**/obj/**"
+  - "**/Migrations/**"
+  - "**/*.g.cs"
+rule:
+  any:
+    - kind: preproc_region
+    - kind: preproc_endregion

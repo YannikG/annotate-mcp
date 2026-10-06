@@ -1,0 +1,15 @@
+<div data-decision>
+    <button type="button" class="dialog-backdrop" data-backdrop aria-label="Close" @onclick="Close"></button>
+    <div class="dialog" data-dialog role="dialog" aria-modal="true" aria-labelledby="@LabelledBy" @onkeydown="OnKey" @onkeydown:stopPropagation="true">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string LabelledBy { get; set; } = "";
+    [Parameter] public EventCallback Close { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private Task OnKey(KeyboardEventArgs args) =>
+        args.Key == "Escape" ? Close.InvokeAsync() : Task.CompletedTask;
+}

@@ -1,0 +1,32 @@
+@foreach (ListItem item in Items)
+{
+    <li>
+        @if (item.Checked is bool done)
+        {
+            <input type="checkbox" checked="@done" disabled />
+        }
+        <InlineView Source="@Source" Inlines="item.Inlines" Ordinal="Ordinal" />
+        @if (item.Items.Count > 0)
+        {
+            @if (ListMarkers.Ordered(item.Items))
+            {
+                <ol><ListItems Source="@Source" Items="item.Items" Ordinal="Ordinal" /></ol>
+            }
+            else
+            {
+                <ul><ListItems Source="@Source" Items="item.Items" Ordinal="Ordinal" /></ul>
+            }
+        }
+    </li>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public string Source { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<ListItem> Items { get; set; } = [];
+
+    [Parameter, EditorRequired]
+    public int Ordinal { get; set; }
+}

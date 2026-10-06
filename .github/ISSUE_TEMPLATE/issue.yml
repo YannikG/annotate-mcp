@@ -1,0 +1,27 @@
+name: Issue
+description: Say what is wrong or missing, and why it is worth changing.
+body:
+  - type: dropdown
+    id: label
+    attributes:
+      label: Label
+      options:
+        - bug
+        - enhancement
+        - docs
+        - ci
+        - question
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why this is raised
+    validations:
+      required: true

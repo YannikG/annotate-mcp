@@ -1,0 +1,310 @@
+/* Review — annotation marks in the text, annotation cards, decision prompts,
+   the review diff, and the floating selection controls. */
+
+/* Annotation marks inside the document */
+
+.annotation-mark {
+    padding: 0;
+    color: inherit;
+    background: var(--mark-bg);
+    border-radius: 2px;
+}
+
+.annotation-mark[data-annotation-kinds~="Deletion"],
+.annotation-mark[data-annotation-kinds~="Replacement"] {
+    background: var(--mark-delete-bg);
+    color: var(--mark-delete-ink);
+}
+
+.annotation-mark del {
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+}
+
+.annotation-mark[data-annotation-kinds~="Comment"] {
+    border-bottom: 2px dotted var(--mark-comment-line);
+    cursor: help;
+}
+
+.annotation-add {
+    padding: 0.05em 0.2em;
+    margin-left: 0.2em;
+    color: var(--mark-add-ink);
+    background: var(--mark-add-bg);
+    text-decoration: none;
+    border-bottom: 2px solid var(--mark-add-line);
+    border-radius: 2px;
+}
+
+/* Review context — Story, acceptance criteria, and written by above the document. */
+
+.review-context {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    width: 100%;
+}
+
+/* Annotation cards */
+
+[data-annotations] {
+    margin: 0;
+}
+
+[data-annotations]:empty {
+    display: none;
+}
+
+[data-annotations] > li {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    width: 100%;
+    padding: var(--space-3) 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+}
+
+.kind {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: 0.02em;
+}
+
+[data-kind="Deletion"] .kind {
+    color: var(--danger);
+}
+
+[data-kind="Replacement"] .kind {
+    color: var(--accent-ink);
+}
+
+[data-kind="Insertion"] .kind {
+    color: var(--success);
+}
+
+[data-kind="Comment"] .kind {
+    color: var(--muted);
+}
+
+[data-annotations] [data-text] {
+    display: block;
+    padding-left: 0.65rem;
+    border-left: 2px solid var(--line);
+    overflow-wrap: anywhere;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+}
+
+[data-annotations] [data-replacement]:empty,
+[data-annotations] [data-comment]:empty {
+    display: none;
+}
+
+.side-panel [data-annotations] > li {
+    padding: var(--space-4);
+    gap: var(--space-3);
+    border-color: var(--panel-line);
+    background: var(--panel-surface);
+}
+
+.side-panel [data-annotations] .kind {
+    padding: 0.2rem var(--space-2);
+    border-radius: var(--radius-sm);
+    background: var(--panel-inset);
+}
+
+.side-panel [data-kind="Deletion"] .kind {
+    background: var(--danger-soft);
+    color: var(--danger-ink);
+}
+
+.side-panel [data-kind="Replacement"] .kind {
+    background: var(--accent-soft);
+}
+
+.side-panel [data-kind="Insertion"] .kind {
+    background: var(--success-soft);
+    color: var(--success-ink);
+}
+
+.side-panel [data-annotations] [data-text] {
+    width: 100%;
+    padding: 0.65rem var(--space-3);
+    border: 0;
+    border-radius: var(--radius-md);
+    background: var(--panel-inset);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+}
+
+.side-panel [data-annotations] .detail {
+    flex-direction: column;
+    gap: var(--space-1);
+    font-size: var(--text-sm);
+    overflow-wrap: anywhere;
+}
+
+.side-panel [data-annotations] .detail-label {
+    font-weight: var(--weight-medium);
+}
+
+/* Decision prompts in the review panel */
+
+[data-prompts] > li {
+    width: 100%;
+}
+
+[data-prompt] {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.15rem;
+    width: 100%;
+    min-height: 40px;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: var(--text-sm);
+    text-align: left;
+    cursor: pointer;
+}
+
+[data-prompt]:hover {
+    border-color: var(--accent);
+}
+
+[data-prompt-text] {
+    font-weight: var(--weight-semibold);
+}
+
+[data-answer] {
+    color: var(--muted);
+    font-size: var(--text-sm);
+    overflow-wrap: anywhere;
+}
+
+[data-prompt][data-answered="false"] [data-answer] {
+    font-style: italic;
+}
+
+[data-prompt][data-answered="true"] [data-answer] {
+    color: var(--accent-ink);
+    font-style: normal;
+    font-weight: var(--weight-semibold);
+}
+
+/* Review diff — the changed-lines list below a reviewed revision. */
+
+.diff h2 {
+    margin: 0 0 var(--space-3);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+}
+
+.diff ol {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    list-style: none;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface-sunken);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: 1.55;
+}
+
+.diff [data-line] {
+    margin: 0;
+    padding: 0.12rem 0.8rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.diff [data-line="added"] {
+    background: var(--success-soft);
+    box-shadow: inset 3px 0 0 var(--success);
+    color: var(--success-ink);
+}
+
+.diff [data-line="removed"] {
+    background: var(--danger-soft);
+    box-shadow: inset 3px 0 0 var(--danger);
+    color: var(--danger-ink);
+    text-decoration: line-through;
+}
+
+/* Selection popup — the ONE place annotation commands live. */
+
+.annotate-toolbar {
+    position: fixed;
+    z-index: var(--z-popover);
+    display: flex;
+    gap: var(--space-1);
+    padding: var(--space-1);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--paper);
+    box-shadow: var(--shadow-lg);
+}
+
+.annotate-action {
+    min-height: 32px;
+    padding: 0.2rem 0.55rem;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--text-sm);
+    cursor: pointer;
+}
+
+.annotate-action:hover {
+    background: var(--surface);
+}
+
+.annotate-action kbd {
+    color: var(--muted);
+    font-size: var(--text-xs);
+}
+
+/* Note popover — the annotation editor beside the quote. */
+
+.annotate-popover {
+    position: fixed;
+    z-index: var(--z-popover);
+    max-height: calc(100dvh - 1rem);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    width: min(22rem, calc(100vw - 1rem));
+    margin: 0;
+    padding: 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: var(--shadow-lg);
+}
+
+.annotate-popover h2 {
+    margin: 0;
+    font-size: var(--text-base);
+}
+
+.annotate-popover [data-note-quote] {
+    margin: 0;
+    padding-left: 0.55rem;
+    border-left: 2px solid var(--line);
+    color: var(--muted);
+    font-size: var(--text-sm);
+}

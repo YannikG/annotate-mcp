@@ -1,0 +1,24 @@
+<Dialog LabelledBy="@TitleId" Close="Cancel">
+    <h2 id="@TitleId">@Title</h2>
+    <p>@Body</p>
+    @if (Error is not null)
+    {
+        <p class="alert" role="alert">@Error</p>
+    }
+    <div class="dialog-actions">
+        <Button data-cancel OnClick="Cancel">Cancel</Button>
+        <Button Variant="ConfirmVariant" data-confirm OnClick="Confirm">@ConfirmLabel</Button>
+    </div>
+</Dialog>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter, EditorRequired] public string Body { get; set; } = "";
+    [Parameter, EditorRequired] public string ConfirmLabel { get; set; } = "";
+    [Parameter] public ButtonVariant ConfirmVariant { get; set; } = ButtonVariant.Primary;
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public EventCallback Confirm { get; set; }
+    [Parameter] public EventCallback Cancel { get; set; }
+
+    private string TitleId { get; } = "confirm-" + Guid.NewGuid().ToString("N");
+}

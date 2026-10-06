@@ -1,0 +1,161 @@
+@page "/plans/{Id}"
+@inject IPlans Plans
+@inject IReviews Reviews
+@inject IReportScript Report
+@inject NavigationManager Navigation
+
+<PageTitle>@(model?.Title ?? "Plan") · Annotate</PageTitle>
+
+@if (missing)
+{
+    <div class="frame">
+        <h1>Not found</h1>
+    </div>
+}
+else if (model is not null)
+{
+    <PlanView Model="model" RevisionChanged="Choose" DownloadReport="DownloadReport"
+        Archive="Archive" Restore="Restore" Delete="Delete" />
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = "";
+
+    private PlanViewModel? model;
+
+    private bool missing;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        PlanDetail? plan = await Plans.PlanAsync(new PlanId(Id), CancellationToken.None);
+        if (plan is null)
+        {
+            model = null;
+            missing = true;
+            return;
+        }
+
+        missing = false;
+        List<RevisionRow> revisions = [];
+        string? pendingReviewId = null;
+        foreach (PlanRevision revision in plan.Revisions.OrderBy(item => item.Number))
+        {
+            ReviewDetail? review = await Reviews.ForRevisionAsync(
+                new Annotate.Reviews.Application.RevisionId(revision.RevisionId.Value),
+                CancellationToken.None);
+            if (review?.Status == ReviewStatus.Pending)
+            {
+                pendingReviewId = review.Id.Value;
+            }
+
+            revisions.Add(new RevisionRow(
+                revision.RevisionId.Value,
+                revision.Number,
+                revision.CreatedAt.ToString("u"),
+                StatusTone.Label(review?.Status),
+                revision.Attribution?.Agent,
+                revision.Attribution?.Model));
+        }
+
+        string? selectedId = revisions.Count == 0 ? null : revisions[^1].RevisionId;
+        ProjectSummary? project = await Plans.ProjectAsync(plan.ProjectId, CancellationToken.None);
+        model = new PlanViewModel(plan.Title, revisions, selectedId, await Body(selectedId),
+            project is null ? null : new ProjectRow(project.ProjectId.Value, project.DisplayName, project.PlanCount),
+            pendingReviewId,
+            AttributionNote: RevisionLabel.Note(plan.Revisions),
+            Archived: plan.Archived);
+    }
+
+    private async Task Archive()
+    {
+        await Change(await Plans.ArchivePlanAsync(new PlanId(Id), CancellationToken.None));
+    }
+
+    private async Task Restore()
+    {
+        await Change(await Plans.RestorePlanAsync(new PlanId(Id), CancellationToken.None));
+    }
+
+    private async Task Delete()
+    {
+        PlanChange outcome = await Plans.DeletePlanAsync(new PlanId(Id), CancellationToken.None);
+        if (outcome is PlanChange.Refused refused)
+        {
+            if (model is not null)
+            {
+                model = model with { Error = refused.Error };
+            }
+
+            return;
+        }
+
+        PlanChange.Done done = (PlanChange.Done)outcome;
+        await Reviews.RemoveRevisionsAsync(done.RevisionIds, CancellationToken.None);
+        Navigation.NavigateTo(model?.Project is null ? "/projects" : "/projects/" + model.Project.ProjectId);
+    }
+
+    private async Task Change(PlanChange outcome)
+    {
+        if (outcome is PlanChange.Refused refused)
+        {
+            if (model is not null)
+            {
+                model = model with { Error = refused.Error };
+            }
+
+            return;
+        }
+
+        await Reload();
+    }
+
+    private async Task Reload()
+    {
+        await OnParametersSetAsync();
+    }
+
+    private async Task Choose(string revisionId)
+    {
+        if (model is null || revisionId.Length == 0)
+        {
+            return;
+        }
+
+        model = model with
+        {
+            SelectedId = revisionId,
+            Selected = await Body(revisionId),
+            ReportError = null,
+        };
+    }
+
+    private async Task DownloadReport()
+    {
+        if (model?.Selected is not { Approved: true } selected)
+        {
+            return;
+        }
+
+        ReportDownload download = await Report.DownloadAsync(
+            PlanReport.Html(selected.Summary, selected.StoryUrl, selected.AcceptanceCriteria, selected.Markdown),
+            "plan.html");
+        model = model with { ReportError = download.Saved ? null : download.Error };
+    }
+
+    private async Task<RevisionViewModel?> Body(string? revisionId)
+    {
+        if (revisionId is null)
+        {
+            return null;
+        }
+
+        RevisionDetail? revision = await Plans.RevisionAsync(
+            new Annotate.Plans.Application.RevisionId(revisionId),
+            CancellationToken.None);
+        if (revision is null) return null;
+        ReviewDetail? review = await Reviews.ForRevisionAsync(
+            new Annotate.Reviews.Application.RevisionId(revisionId), CancellationToken.None);
+        return RevisionBody.From(revision, review?.Annotations, review?.Status == ReviewStatus.Approved);
+    }
+}

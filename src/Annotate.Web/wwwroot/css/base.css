@@ -1,0 +1,139 @@
+/* Base — reset and bare-element defaults.
+   This is the ONLY stylesheet that may select bare elements (button, input, a, ...).
+   Everything visual comes from tokens; components live in ui.css and up. */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    overflow: hidden;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.5;
+}
+
+:focus {
+    outline: none;
+}
+
+:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}
+
+h1:focus,
+h1:focus-visible {
+    outline: none;
+}
+
+::selection {
+    background: var(--accent-soft);
+    color: var(--ink);
+}
+
+a {
+    color: var(--accent-ink);
+    overflow-wrap: anywhere;
+}
+
+button,
+input,
+textarea {
+    font: inherit;
+    color: var(--ink);
+}
+
+button {
+    cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+textarea:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+input,
+textarea {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--paper);
+}
+
+input:not([type="radio"]):not([type="checkbox"]),
+textarea {
+    width: 100%;
+    min-height: 40px;
+    padding: 0.45rem 0.7rem;
+}
+
+textarea {
+    min-height: 7.5rem;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    width: 1.15rem;
+    height: 1.15rem;
+    margin: 0;
+    accent-color: var(--accent);
+    flex: none;
+}
+
+kbd {
+    padding: 0.12rem 0.38rem;
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: var(--radius-xs);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.2;
+}
+
+/* Utilities */
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.mono {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 500;
+}
+
+/* Blazor chrome */
+
+.blazor-error-boundary {
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-6);
+    background: var(--danger);
+    color: var(--on-accent);
+}
+
+.blazor-error-boundary::after {
+    content: "An error has occurred.";
+}

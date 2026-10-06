@@ -1,0 +1,16 @@
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/projects">Projects</a>
+    @if (!string.IsNullOrWhiteSpace(ProjectId))
+    {
+        <span aria-hidden="true">/</span>
+        <a href="/projects/@ProjectId">@ProjectName</a>
+    }
+</nav>
+
+@code {
+    [Parameter]
+    public string? ProjectId { get; set; }
+
+    [Parameter]
+    public string? ProjectName { get; set; }
+}

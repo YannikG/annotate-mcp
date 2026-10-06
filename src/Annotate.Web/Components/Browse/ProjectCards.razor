@@ -1,0 +1,31 @@
+<ul class="stack project-list" data-project-list>
+    @foreach (ProjectRow project in Projects)
+    {
+        <li>
+            <a class="project-card" data-project-card href="/projects/@project.ProjectId">
+                <span class="card-heading">
+                    <span class="card-title">@project.DisplayName</span>
+                    <Badge>@project.PlanCount @(project.PlanCount == 1 ? "plan" : "plans")</Badge>
+                </span>
+                <span class="card-meta">
+                    @if (project.FolderPath is not null)
+                    {
+                        <span class="mono path">@project.FolderPath</span>
+                    }
+                    @if (Archived)
+                    {
+                        <span>Archived</span>
+                    }
+                </span>
+            </a>
+        </li>
+    }
+</ul>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<ProjectRow> Projects { get; set; } = [];
+
+    [Parameter]
+    public bool Archived { get; set; }
+}

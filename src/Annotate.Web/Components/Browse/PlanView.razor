@@ -1,0 +1,44 @@
+<div class="frame">
+    @if (Model.Selected is not null)
+    {
+        <RevisionView Model="Model.Selected">
+            <Header><PlanHeader Model="Model" Archive="Archive" Restore="Restore" Delete="Delete" /></Header>
+            <Controls><RevisionPicker Model="Model" RevisionChanged="RevisionChanged" /></Controls>
+            <Actions>
+                @if (Model.Selected.Approved)
+                {
+                    <Button Variant="ButtonVariant.Quiet" data-download-report OnClick="DownloadReport">Download report</Button>
+                }
+            </Actions>
+        </RevisionView>
+    }
+    else
+    {
+        <PlanHeader Model="Model" Archive="Archive" Restore="Restore" Delete="Delete" />
+        <EmptyState Title="This plan has no revisions." />
+    }
+    @if (Model.ReportError is not null)
+    {
+        <p class="alert" role="alert" data-report-error>@Model.ReportError</p>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public PlanViewModel Model { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback<string> RevisionChanged { get; set; }
+
+    [Parameter]
+    public EventCallback DownloadReport { get; set; }
+
+    [Parameter]
+    public EventCallback Archive { get; set; }
+
+    [Parameter]
+    public EventCallback Restore { get; set; }
+
+    [Parameter]
+    public EventCallback Delete { get; set; }
+}

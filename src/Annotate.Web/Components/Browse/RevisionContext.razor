@@ -1,0 +1,31 @@
+@if (HasContext)
+{
+    <section class="review-context" data-review-context>
+        @if (!string.IsNullOrEmpty(StoryUrl))
+        {
+            <ContextBlock Label="Story"><p><a href="@StoryUrl">@StoryUrl</a></p></ContextBlock>
+        }
+        @if (!string.IsNullOrEmpty(AcceptanceCriteria))
+        {
+            <ContextBlock Label="Acceptance criteria" data-criteria><pre class="criteria">@AcceptanceCriteria</pre></ContextBlock>
+        }
+        @if (WrittenBy is not null)
+        {
+            <ContextBlock Label="Written by" data-written-by><p>@WrittenBy</p></ContextBlock>
+        }
+    </section>
+}
+
+@code {
+    [Parameter] public string? StoryUrl { get; set; }
+    [Parameter] public string? AcceptanceCriteria { get; set; }
+
+    [Parameter] public Attribution? Attribution { get; set; }
+
+    private string? WrittenBy => RevisionLabel.WrittenBy(Attribution);
+
+    private bool HasContext =>
+        !string.IsNullOrEmpty(StoryUrl)
+        || !string.IsNullOrEmpty(AcceptanceCriteria)
+        || WrittenBy is not null;
+}

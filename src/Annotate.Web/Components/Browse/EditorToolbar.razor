@@ -1,0 +1,16 @@
+<div class="editor-toolbar" data-editor-toolbar role="group" aria-label="Document controls">
+    <div class="editor-toolbar-leading" role="group" aria-label="Document navigation and annotation">
+        @if (PlanMarkdown.Parse(Markdown) is ParseOutcome.Ok ok && ok.Document.Blocks.OfType<HeadingBlock>().Any())
+        {
+            <PanelToggle PanelKey="contents" Title="Contents" Side="left" />
+        }
+        @Leading
+    </div>
+    <div class="editor-toolbar-trailing" role="group" aria-label="Panels and review actions">@Trailing</div>
+</div>
+
+@code {
+    [Parameter] public string Markdown { get; set; } = "";
+    [Parameter] public RenderFragment? Leading { get; set; }
+    [Parameter] public RenderFragment? Trailing { get; set; }
+}

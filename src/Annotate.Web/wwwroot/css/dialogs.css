@@ -1,0 +1,226 @@
+/* Dialogs — the single modal pattern. <Dialog> renders the overlay, a
+   .dialog-backdrop, and one .dialog panel. Menus use the transparent .backdrop. */
+
+[data-decision] {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: grid;
+}
+
+.dialog-backdrop,
+.dialog {
+    grid-area: 1 / 1;
+}
+
+.dialog-backdrop {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: var(--backdrop);
+    cursor: default;
+}
+
+.dialog {
+    place-self: center;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    width: min(32rem, calc(100% - 1.5rem));
+    max-height: calc(100dvh - 1.5rem);
+    margin: 0;
+    padding: 1.25rem;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: var(--shadow-lg);
+    overflow-wrap: anywhere;
+}
+
+.dialog h2 {
+    margin: 0;
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+}
+
+.dialog form {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+}
+
+.dialog label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+}
+
+.dialog-prompt {
+    margin: 0;
+    font-size: var(--text-xl);
+    font-weight: var(--weight-bold);
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+}
+
+.progress {
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--text-xs);
+}
+
+.choices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.choice {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    cursor: pointer;
+}
+
+.choice:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.other-answer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.dialog-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-3);
+    width: 100%;
+    margin-top: var(--space-1);
+}
+
+.dialog-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+/* Backdrop — transparent click-catcher behind flyout menus. */
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-backdrop);
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+/* Split button — one primary action with more choices behind the toggle. */
+
+.split {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+}
+
+.split > [data-approve],
+.split > .split-toggle {
+    border-color: var(--approve);
+    background: var(--approve);
+    color: var(--on-approve);
+}
+
+.split > [data-approve]:disabled,
+.split > .split-toggle:disabled {
+    opacity: 1;
+    border-color: var(--approve-disabled);
+    background: var(--approve-disabled);
+    color: var(--on-approve);
+}
+
+.split > [data-approve] {
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.split > .split-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    min-height: 40px;
+    padding: 0;
+    border: 1px solid var(--approve);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    border-left-color: color-mix(in srgb, var(--on-approve) 45%, transparent);
+    cursor: pointer;
+}
+
+.split > [data-approve]:hover,
+.split > .split-toggle:hover {
+    border-color: var(--approve);
+    background: color-mix(in srgb, var(--approve) 88%, var(--on-approve));
+    color: var(--on-approve);
+}
+
+.split-toggle svg {
+    width: 0.9rem;
+    height: 0.9rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.split-menu {
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    right: 0;
+    z-index: var(--z-flyout);
+    min-width: 16rem;
+    padding: 0.35rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    box-shadow: var(--shadow-lg);
+}
+
+.split-item {
+    display: block;
+    width: 100%;
+    min-height: 40px;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink);
+    font-size: var(--text-sm);
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.split-item:hover {
+    background: var(--accent-soft);
+}

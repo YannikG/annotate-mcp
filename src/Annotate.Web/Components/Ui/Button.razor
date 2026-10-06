@@ -1,0 +1,28 @@
+<button @attributes="AdditionalAttributes" type="@Type" class="@ClassName" disabled="@Disabled" @onclick="OnClick">@ChildContent</button>
+
+@code {
+    [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Secondary;
+    [Parameter] public string Type { get; set; } = "button";
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string ClassName
+    {
+        get
+        {
+            string variant = Variant switch
+            {
+                ButtonVariant.Primary => " btn-primary",
+                ButtonVariant.Quiet => " btn-quiet",
+                ButtonVariant.Destructive => " btn-destructive",
+                _ => " btn-secondary",
+            };
+            string extra = AdditionalAttributes?.TryGetValue("class", out object? value) == true
+                ? $" {value}"
+                : "";
+            return $"btn{variant}{extra}";
+        }
+    }
+}

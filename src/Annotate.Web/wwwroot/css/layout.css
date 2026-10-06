@@ -1,0 +1,434 @@
+/* Layout — the shell, page frames, editor toolbar, and document board.
+   Structure only: colours come from tokens, components from ui.css. */
+
+.shell {
+    --page-width: 100%;
+    --main-pad-x: clamp(1rem, 3vw, 2rem);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--paper);
+    color: var(--ink);
+}
+
+.shell > header,
+.shell > footer {
+    flex: none;
+}
+
+.shell > header {
+    --ink: var(--nav-ink);
+    --muted: var(--nav-muted);
+    --line: var(--nav-line);
+    --surface: var(--nav-surface);
+    --paper: var(--nav);
+    --accent: var(--nav-accent);
+    --accent-ink: var(--nav-accent-ink);
+    --accent-soft: var(--nav-accent-soft);
+    --on-accent: var(--nav-on-accent);
+    --danger: var(--nav-danger);
+    --danger-ink: var(--nav-danger-ink);
+    --danger-soft: var(--nav-danger-soft);
+    --success-ink: var(--nav-success-ink);
+    --success-soft: var(--nav-success-soft);
+    --focus: var(--nav-focus);
+    color-scheme: dark;
+    min-height: 3.25rem;
+    padding: 0.65rem var(--main-pad-x);
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+}
+
+.header-inner {
+    width: min(100%, var(--page-width));
+    min-width: 0;
+    margin-inline: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+}
+
+.mark {
+    color: var(--ink);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    letter-spacing: -0.03em;
+    text-decoration: none;
+}
+
+.mark:hover {
+    color: var(--ink);
+}
+
+.site-nav {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    gap: 0.4rem;
+}
+
+.site-nav a {
+    padding: 0.45rem 0.65rem;
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+}
+
+.site-nav a:hover,
+.site-nav a.active {
+    color: var(--ink);
+    background: var(--surface);
+}
+
+.shell > header .btn-icon {
+    flex: none;
+}
+
+.shell > main {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-padding-top: calc(var(--panel-header-offset, 0px) + var(--panel-toolbar-height, 0px) + 1rem);
+    --main-pad-top: 1rem;
+    padding: var(--main-pad-top) var(--main-pad-x) var(--space-5);
+}
+
+.shell > footer {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem 1.1rem;
+    padding: 0.45rem var(--space-4);
+    border-top: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--muted);
+    font-size: var(--text-xs);
+}
+
+.shell:not(:has(.review-page)) > footer {
+    display: none;
+}
+
+.hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+@media (min-width: 800px) {
+    .shell > main {
+        --main-pad-top: 1.5rem;
+        padding-bottom: var(--space-6);
+    }
+}
+
+/* Page frame and title */
+
+.frame {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    width: min(100%, var(--page-width));
+    margin-inline: auto;
+}
+
+.frame > section,
+.page-title {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.frame h1,
+.page-title h1 {
+    margin: 0;
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+}
+
+.frame h2 {
+    margin: 0;
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+    line-height: 1.3;
+}
+
+.page-title {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-4);
+}
+
+.page-title > h1,
+.page-title > .title-block {
+    flex: 1 1 15rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-2);
+}
+
+.page-description {
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--text-base);
+}
+
+.path {
+    margin: 0;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+}
+
+/* Editor heading and toolbar */
+
+.editor-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+}
+
+.editor-heading h1 {
+    margin: 0;
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+    letter-spacing: -0.03em;
+    overflow-wrap: anywhere;
+}
+
+.editor-heading .badge {
+    flex: none;
+}
+
+.editor-toolbar {
+    position: sticky;
+    top: calc(-1 * var(--main-pad-top, 0px));
+    z-index: var(--z-sticky);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+    min-width: 0;
+    margin: var(--space-4) 0;
+    padding: 0.625rem var(--space-3);
+    border: 1px solid var(--panel-line);
+    border-radius: var(--radius-md);
+    background: var(--panel-surface);
+    box-shadow: var(--shadow-md);
+}
+
+.editor-toolbar-leading,
+.editor-toolbar-trailing {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    min-width: 0;
+}
+
+.editor-toolbar-trailing {
+    margin-left: auto;
+    justify-content: flex-end;
+}
+
+.review-page > .editor-toolbar {
+    margin-block: 0;
+}
+
+/* Document board — document column plus side panels. */
+
+.review-board {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+    width: min(100%, var(--page-width));
+    min-width: 0;
+    margin-inline: auto;
+}
+
+.plan-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: 100%;
+    max-width: 82ch;
+    min-width: 0;
+    margin-inline: auto;
+}
+
+.panel-tools-left,
+.panel-tools-right,
+.side-panel-control {
+    display: contents;
+}
+
+.review-document {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    min-width: 0;
+}
+
+.revision-document {
+    min-width: 0;
+}
+
+.review-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    min-width: 0;
+}
+
+.review-page:focus-visible {
+    outline: none;
+}
+
+.review-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+}
+
+.review-header:not(:has(.context-block)) {
+    display: none;
+}
+
+.revision-document > .review-context {
+    margin-bottom: 1.25rem;
+}
+
+.revision-changes {
+    margin-top: var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+}
+
+.revision-changes > summary {
+    padding: var(--space-4);
+    font-weight: var(--weight-medium);
+    cursor: pointer;
+}
+
+.revision-changes[open] > summary {
+    border-bottom: 1px solid var(--line);
+}
+
+.revision-changes-body {
+    padding: var(--space-4);
+}
+
+/* Review actions row — inline on desktop, one Actions flyout below 1100px. */
+
+.nav-right {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+@media (min-width: 1100px) {
+    .review-board {
+        grid-template-columns: clamp(14rem, 18vw, 20rem) minmax(0, 1fr) clamp(20rem, 24vw, 28rem);
+        gap: clamp(1.25rem, 1.5vw, 2rem);
+    }
+
+    .plan-column,
+    .panel-tools-left {
+        display: contents;
+    }
+
+    .revision-document,
+    .review-document {
+        grid-column: 2;
+    }
+}
+
+@media (max-width: 1099.98px) {
+    .editor-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: var(--space-2);
+    }
+}
+
+@media (max-width: 700px) {
+    .header-inner {
+        gap: var(--space-3);
+    }
+
+    .site-nav {
+        gap: 0;
+    }
+
+    .site-nav a {
+        padding-inline: var(--space-2);
+    }
+
+    .page-title {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .page-title > h1,
+    .page-title > .title-block {
+        flex-basis: auto;
+    }
+
+    .page-actions {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 599.98px) {
+    .editor-toolbar:has([data-revision]) {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .editor-toolbar:has([data-revision]) .editor-toolbar-leading {
+        display: contents;
+    }
+
+    .editor-toolbar:has([data-revision]) .editor-toolbar-trailing {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .editor-toolbar .revision-picker {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+    .editor-toolbar .revision-picker .select {
+        flex: 1;
+    }
+}

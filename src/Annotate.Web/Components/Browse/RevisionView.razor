@@ -1,0 +1,65 @@
+@if (Header is not null)
+{
+    @Header
+}
+else
+{
+    <header class="page-title"><h1>Revision @Model.Number</h1></header>
+}
+<EditorToolbar Markdown="@Model.Markdown">
+    <Leading>@Controls</Leading>
+    <Trailing>
+        @Actions
+        <PanelToggle PanelKey="annotations" Title="Annotations" />
+    </Trailing>
+</EditorToolbar>
+<DocumentBoard Markdown="@Model.Markdown">
+    <Panels>
+        <SidePanel PanelKey="annotations" Title="Annotations" ShowTrigger="false">
+            <AnnotationCards Annotations="@(Model.Annotations ?? Array.Empty<Annotation>())" />
+        </SidePanel>
+    </Panels>
+    <ChildContent>
+        <div class="revision-document">
+            <RevisionContext StoryUrl="@Model.StoryUrl" AcceptanceCriteria="@Model.AcceptanceCriteria" Attribution="@Model.Attribution" />
+            <CascadingValue Name="Annotations" Value="@(Model.Annotations ?? Array.Empty<Annotation>())">
+                <PlanText Markdown="@Model.Markdown" />
+            </CascadingValue>
+            <details class="revision-changes" data-revision-changes @key="Model">
+                <summary>Changes</summary>
+                <div class="revision-changes-body">
+                    @if (Model.Blocks.Count == 0)
+                    {
+                        <EmptyState Title="This revision has no blocks." />
+                    }
+                    else
+                    {
+                        <ol class="stack" data-changes>
+                            @foreach (BlockRow block in Model.Blocks)
+                            {
+                                <li class="context-block" data-change="@block.Change">
+                                    <span class="kind">@block.Change</span>
+                                    <p>@block.Text</p>
+                                </li>
+                            }
+                        </ol>
+                    }
+                </div>
+            </details>
+        </div>
+    </ChildContent>
+</DocumentBoard>
+
+@code {
+    [Parameter, EditorRequired]
+    public RevisionViewModel Model { get; set; } = default!;
+
+    [Parameter]
+    public RenderFragment? Header { get; set; }
+
+    [Parameter]
+    public RenderFragment? Controls { get; set; }
+
+    [Parameter]
+    public RenderFragment? Actions { get; set; }
+}

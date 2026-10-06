@@ -1,0 +1,99 @@
+<div class="title-block">
+    <ProjectBreadcrumb ProjectId="@Model.Project?.ProjectId" ProjectName="@Model.Project?.DisplayName" />
+    @if (Model.AttributionNote is not null)
+    {
+        <Badge Tone="neutral" data-attribution>@Model.AttributionNote</Badge>
+    }
+    @if (Model.Archived)
+    {
+        <Badge data-archived-plan>Archived</Badge>
+    }
+    <header class="page-title">
+        <h1>@Model.Title</h1>
+        <div class="page-actions">
+            @if (Model.PendingReviewId is not null)
+            {
+                <a class="btn btn-primary" data-continue-review href="/review/@Model.PendingReviewId">Continue review</a>
+            }
+            @if (Model.Archived)
+            {
+                <Button data-restore OnClick="OpenRestore">Restore</Button>
+            }
+            else
+            {
+                <Button data-archive OnClick="OpenArchive">Archive</Button>
+            }
+            <Button Variant="ButtonVariant.Destructive" data-delete OnClick="OpenDelete">Delete</Button>
+        </div>
+    </header>
+</div>
+@if (mode == Mode.Archive)
+{
+    <ConfirmDialog Title="Archive this plan?" Body="You can restore it later. It leaves the active plan lists until then."
+        ConfirmLabel="Archive" Error="@Model.Error" Confirm="ConfirmArchive" Cancel="Close" />
+}
+else if (mode == Mode.Restore)
+{
+    <ConfirmDialog Title="Restore this plan?" Body="It returns to the active plan lists."
+        ConfirmLabel="Restore" Error="@Model.Error" Confirm="ConfirmRestore" Cancel="Close" />
+}
+else if (mode == Mode.Delete)
+{
+    <ConfirmDialog Title="Delete this plan permanently?" Body="This cannot be undone. The plan and its reviews are removed."
+        ConfirmLabel="Delete permanently" ConfirmVariant="ButtonVariant.Destructive" Error="@Model.Error" Confirm="ConfirmDelete" Cancel="Close" />
+}
+
+@code {
+    private enum Mode
+    {
+        None,
+        Archive,
+        Restore,
+        Delete,
+    }
+
+    [Parameter, EditorRequired]
+    public PlanViewModel Model { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback Archive { get; set; }
+
+    [Parameter]
+    public EventCallback Restore { get; set; }
+
+    [Parameter]
+    public EventCallback Delete { get; set; }
+
+    private bool? wasArchived;
+
+    private Mode mode;
+
+    protected override void OnParametersSet()
+    {
+        if (wasArchived == false && Model.Archived && mode == Mode.Archive)
+        {
+            mode = Mode.None;
+        }
+
+        if (wasArchived == true && !Model.Archived && mode == Mode.Restore)
+        {
+            mode = Mode.None;
+        }
+
+        wasArchived = Model.Archived;
+    }
+
+    private void OpenArchive() => mode = Mode.Archive;
+
+    private void OpenRestore() => mode = Mode.Restore;
+
+    private void OpenDelete() => mode = Mode.Delete;
+
+    private void Close() => mode = Mode.None;
+
+    private Task ConfirmArchive() => Archive.InvokeAsync();
+
+    private Task ConfirmRestore() => Restore.InvokeAsync();
+
+    private Task ConfirmDelete() => Delete.InvokeAsync();
+}

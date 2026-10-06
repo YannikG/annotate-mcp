@@ -1,0 +1,22 @@
+@if (Box is not null)
+{
+    <div class="annotate-toolbar" data-annotate-toolbar @attributes="Anchor.Attributes(Anchor.Above(Box))" @onmousedown:preventDefault="true">
+        @foreach ((string key, string label) in Commands)
+        {
+            <button type="button" class="annotate-action" data-annotate="@key" @onclick="() => Annotate.InvokeAsync(key)">@label <kbd>@key</kbd></button>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public SelectionBox? Box { get; set; }
+    [Parameter] public EventCallback<string> Annotate { get; set; }
+
+    private static readonly (string Key, string Label)[] Commands =
+    [
+        ("d", "Delete"),
+        ("r", "Replace"),
+        ("s", "Insert"),
+        ("c", "Comment"),
+    ];
+}

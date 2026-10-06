@@ -1,0 +1,13 @@
+id: no-bare-element-selector
+language: Css
+severity: error
+message: "Bare element selectors belong in base.css."
+files:
+  - src/Annotate.Web/**/*.css
+ignores:
+  - "**/bin/**"
+  - "**/obj/**"
+  - "**/base.css"
+rule:
+  kind: selectors
+  regex: "^(a|button|input|select|textarea|kbd)([\\s,{:#\\[.]|$)"

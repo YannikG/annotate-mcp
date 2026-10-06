@@ -1,0 +1,21 @@
+@page "/"
+@inject IPlans Plans
+@inject IReviews Reviews
+
+<PageTitle>Dashboard · Annotate</PageTitle>
+
+@if (model is not null)
+{
+    <DashboardView Model="model" />
+}
+
+@code {
+    private DashboardModel? model;
+
+    protected override async Task OnInitializedAsync()
+    {
+        IReadOnlyList<RevisionActivity> activity = await Plans.RevisionActivityAsync(CancellationToken.None);
+        IReadOnlyList<ListedReview> reviews = await Reviews.ListAsync(CancellationToken.None);
+        model = DashboardStats.Compute(activity, reviews, DateTimeOffset.UtcNow, TimeZoneInfo.Local);
+    }
+}

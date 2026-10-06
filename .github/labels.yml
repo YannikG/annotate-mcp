@@ -1,0 +1,15 @@
+- name: bug
+  color: d73a4a
+  description: Broken behaviour
+- name: enhancement
+  color: a2eeef
+  description: Behaviour change
+- name: docs
+  color: 0075ca
+  description: Docs or wiki
+- name: ci
+  color: 5319e7
+  description: Workflows, image, checks
+- name: question
+  color: d876e3
+  description: Needs a decision

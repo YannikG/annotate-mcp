@@ -1,0 +1,10 @@
+<button type="button" class="side-panel-trigger" data-panel-trigger="@PanelKey" popovertarget="@($"panel-{PanelKey}")" aria-controls="@($"panel-{PanelKey}")" aria-haspopup="dialog">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="@(Side == "left" ? "M9 4v16" : "M15 4v16")" /></svg>
+    @Title
+</button>
+
+@code {
+    [Parameter, EditorRequired] public string PanelKey { get; set; } = "";
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string Side { get; set; } = "right";
+}

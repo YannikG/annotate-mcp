@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <meta name="mermaid-script" content="@Assets["js/mermaid.min.js"]" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["css/tokens.css"]" />
+    <link rel="stylesheet" href="@Assets["css/base.css"]" />
+    <link rel="stylesheet" href="@Assets["css/ui.css"]" />
+    <link rel="stylesheet" href="@Assets["css/cards.css"]" />
+    <link rel="stylesheet" href="@Assets["css/dashboard.css"]" />
+    <link rel="stylesheet" href="@Assets["css/dialogs.css"]" />
+    <link rel="stylesheet" href="@Assets["css/layout.css"]" />
+    <link rel="stylesheet" href="@Assets["css/panels.css"]" />
+    <link rel="stylesheet" href="@Assets["css/document.css"]" />
+    <link rel="stylesheet" href="@Assets["css/review.css"]" />
+    <link rel="stylesheet" href="@Assets["Annotate.Web.styles.css"]" />
+    <script src="@Assets["js/theme.js"]"></script>
+    <HeadOutlet @rendermode="InteractiveServer" />
+</head>
+
+<body>
+    <Routes @rendermode="InteractiveServer" />
+    <ReconnectModal />
+    <script src="@Assets["js/selection.js"]"></script>
+    <script src="@Assets["js/report.js"]"></script>
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
+
+</html>

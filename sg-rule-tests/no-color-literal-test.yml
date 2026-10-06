@@ -1,0 +1,5 @@
+id: no-color-literal
+valid:
+  - ".card { color: var(--ink); }"
+invalid:
+  - ".card { color: #04395e; }"

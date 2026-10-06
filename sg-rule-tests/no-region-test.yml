@@ -1,0 +1,5 @@
+id: no-region
+valid:
+  - "class Sample { }"
+invalid:
+  - "#region Sample"

@@ -1,0 +1,24 @@
+<div class="side-panel-control">
+    @if (ShowTrigger)
+    {
+        <PanelToggle PanelKey="@PanelKey" Title="@Title" Side="@Side" />
+    }
+    <aside id="@Id" class="side-panel side-panel-@Side" data-side-panel="@PanelKey" popover="auto" role="dialog" aria-labelledby="@TitleId" @onkeydown:stopPropagation="true">
+        <header class="side-panel-header">
+            <h2 id="@TitleId">@Title</h2>
+            <button type="button" class="side-panel-close" popovertarget="@Id" popovertargetaction="hide" aria-label="Close @Title">×</button>
+        </header>
+        <div class="side-panel-body">@ChildContent</div>
+    </aside>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string PanelKey { get; set; } = "";
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public bool ShowTrigger { get; set; } = true;
+    [Parameter] public string Side { get; set; } = "right";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string Id => $"panel-{PanelKey}";
+    private string TitleId => $"{Id}-title";
+}

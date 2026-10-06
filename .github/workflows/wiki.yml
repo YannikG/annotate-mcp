@@ -1,0 +1,18 @@
+name: Wiki
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish checked-in guides
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: ./build/publish-wiki.sh

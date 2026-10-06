@@ -1,0 +1,5 @@
+id: no-raw-z-index
+valid:
+  - ".dialog { z-index: var(--z-modal); }"
+invalid:
+  - ".dialog { z-index: 30; }"

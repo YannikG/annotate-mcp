@@ -1,0 +1,269 @@
+/* Panels — side panels and flyout menus. Below 1100px panels are popover
+   flyouts; at 1100px and up they become grid columns beside the document. */
+
+/* Review actions flyout */
+
+.review-actions-control {
+    position: relative;
+    min-width: 0;
+}
+
+.review-actions-trigger {
+    display: none;
+}
+
+@media (max-width: 1099.98px) {
+    .review-actions-trigger {
+        position: relative;
+        z-index: var(--z-flyout);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .review-actions-control .nav-right {
+        display: none;
+    }
+
+    .review-actions-control .nav-right.is-open {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        right: 0;
+        z-index: var(--z-flyout);
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-3);
+        width: min(22rem, calc(100vw - 2rem));
+        padding: var(--space-4);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        background: var(--panel-surface);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .review-actions-control .split > [data-approve] {
+        flex: 1;
+    }
+}
+
+/* Side panels */
+
+.side-panel-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 40px;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--ink);
+    font-size: var(--text-sm);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.side-panel-trigger:hover {
+    background: var(--panel-inset);
+}
+
+.side-panel-trigger svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+}
+
+.side-panel-control:has(.side-panel:popover-open) .side-panel-trigger,
+.editor-toolbar .side-panel-trigger[aria-expanded="true"] {
+    background: var(--panel-inset);
+    border-color: var(--accent);
+}
+
+.side-panel {
+    position: fixed;
+    inset: 0 0 0 auto;
+    margin: 0;
+    padding: 0;
+    width: min(25rem, calc(100vw - 2rem));
+    height: 100dvh;
+    max-height: 100dvh;
+    border: 0;
+    border-left: 1px solid var(--line);
+    background: var(--panel-surface);
+    color: var(--ink);
+    box-shadow: var(--shadow-flyout);
+    overflow: hidden;
+}
+
+.side-panel-left {
+    inset: 0 auto 0 0;
+    border-left: 0;
+    border-right: 1px solid var(--line);
+    box-shadow: var(--shadow-flyout-left);
+}
+
+.side-panel:popover-open {
+    display: flex;
+    flex-direction: column;
+}
+
+.side-panel::backdrop {
+    background: var(--panel-backdrop);
+}
+
+.side-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex: none;
+    padding: var(--space-4) 1.25rem;
+}
+
+.side-panel-header h2 {
+    margin: 0;
+    font-size: var(--text-lg);
+}
+
+.side-panel-close {
+    min-width: 40px;
+    min-height: 40px;
+    padding: var(--space-1);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--ink);
+    font-size: var(--text-2xl);
+    line-height: 1;
+    cursor: pointer;
+}
+
+.side-panel-close:hover {
+    background: var(--panel-inset);
+}
+
+.side-panel-body {
+    flex: 1;
+    min-height: 0;
+    padding: 1.25rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.side-panel .empty-state {
+    padding: 0.25rem 0 var(--space-2);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    text-align: left;
+}
+
+.side-panel .empty-state h2 {
+    font-size: var(--text-sm);
+    font-weight: 400;
+    color: var(--muted);
+}
+
+/* Contents navigation */
+
+.contents {
+    min-width: 0;
+}
+
+.contents ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.contents a {
+    display: block;
+    padding: 0.4rem 0;
+    color: var(--ink);
+    font-size: var(--text-sm);
+    line-height: 1.4;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.contents a:hover {
+    color: var(--accent-ink);
+}
+
+.contents .l2 { padding-left: var(--space-3); }
+.contents .l3 { padding-left: var(--space-5); }
+.contents .l4 { padding-left: 2.25rem; }
+.contents .l5 { padding-left: var(--space-7); }
+.contents .l6 { padding-left: 3.75rem; }
+
+.side-panel .contents a {
+    padding: var(--space-2) 0.625rem;
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+}
+
+.side-panel .contents a:hover {
+    background: var(--panel-inset);
+    color: var(--ink);
+}
+
+.side-panel .contents .l1 a {
+    font-weight: var(--weight-semibold);
+}
+
+@media (min-width: 1100px) {
+    .panel-tools-right {
+        display: flex;
+        grid-column: 3;
+        grid-row: 1;
+        align-self: start;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.6rem;
+        position: sticky;
+        top: calc(var(--panel-toolbar-height, 0px) - var(--main-pad-top, 0px) + 1rem);
+        max-height: calc(var(--panel-scroll-height, 100dvh) - var(--panel-toolbar-height, 0px) - 2rem);
+    }
+
+    .panel-tools-right .side-panel {
+        min-height: 0;
+    }
+
+    .side-panel-trigger,
+    .side-panel-close {
+        display: none;
+    }
+
+    .side-panel {
+        display: flex;
+        flex-direction: column;
+        position: static;
+        inset: auto;
+        margin: 0;
+        width: 100%;
+        height: auto;
+        max-height: calc(var(--panel-scroll-height, 100dvh) - var(--panel-toolbar-height, 0px) - 2rem);
+        border: 1px solid var(--panel-line);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-panel);
+    }
+
+    .side-panel[data-side-panel="contents"] {
+        grid-column: 1;
+        grid-row: 1;
+        position: sticky;
+        top: calc(var(--panel-toolbar-height, 0px) - var(--main-pad-top, 0px) + 1rem);
+        align-self: start;
+    }
+
+    .side-panel-header {
+        padding: 1.25rem 1.25rem var(--space-3);
+    }
+
+    .side-panel-body {
+        padding: 0.25rem 1.25rem 1.25rem;
+    }
+}

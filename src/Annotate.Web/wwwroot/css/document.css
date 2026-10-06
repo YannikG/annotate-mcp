@@ -1,0 +1,385 @@
+/* Document — rendered plan Markdown: prose, code fences, diffs, decisions, diagrams.
+   Everything hangs off [data-plan] so app chrome is never affected. */
+
+[data-plan] {
+    width: 100%;
+    min-width: 0;
+    padding: 1.15rem 1.05rem 1.35rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--sheet);
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+}
+
+[data-plan] > :first-child {
+    margin-top: 0;
+}
+
+[data-plan] > :last-child {
+    margin-bottom: 0;
+}
+
+[data-plan] h1,
+[data-plan] h2,
+[data-plan] h3,
+[data-plan] h4,
+[data-plan] h5,
+[data-plan] h6 {
+    font-weight: var(--weight-bold);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+}
+
+[data-plan] h1 {
+    margin: 0 0 var(--space-3);
+    font-size: 1.7rem;
+}
+
+[data-plan] h2 {
+    margin: 1.35rem 0 var(--space-2);
+    font-size: 1.3rem;
+}
+
+[data-plan] h3 {
+    margin: 1.15rem 0 0.4rem;
+    font-size: var(--text-lg);
+}
+
+[data-plan] h4,
+[data-plan] h5,
+[data-plan] h6 {
+    margin: var(--space-4) 0 0.35rem;
+    font-size: var(--text-base);
+}
+
+[data-plan] p {
+    margin: var(--space-3) 0;
+}
+
+[data-plan] ul,
+[data-plan] ol {
+    margin: 0.45rem 0;
+    padding-left: 1.35rem;
+}
+
+[data-plan] ul {
+    list-style: disc;
+}
+
+[data-plan] ul ul {
+    list-style: circle;
+}
+
+[data-plan] ol {
+    list-style: decimal;
+}
+
+[data-plan] li {
+    margin: 0.28rem 0;
+}
+
+[data-plan] li > input[type="checkbox"] {
+    width: var(--space-4);
+    height: var(--space-4);
+    margin: 0 0.4rem 0 0;
+    vertical-align: -0.12em;
+    opacity: 1;
+    cursor: default;
+}
+
+[data-plan] a {
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+}
+
+[data-plan] code {
+    padding: 0.08em 0.32em;
+    border-radius: var(--radius-xs);
+    background: var(--surface-sunken);
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+}
+
+[data-plan] pre {
+    margin: 0.9rem 0;
+    padding: 0.85rem var(--space-4);
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface-sunken);
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+[data-plan] pre code {
+    padding: 0;
+    background: transparent;
+    font-size: var(--text-sm);
+}
+
+[data-plan] blockquote {
+    margin: 0.9rem 0;
+    padding: 0.1rem 0 0.1rem 0.9rem;
+    border-left: 3px solid var(--accent);
+}
+
+[data-plan] .table-wrap {
+    max-width: 100%;
+    margin: 0.9rem 0;
+    overflow-x: auto;
+}
+
+[data-plan] table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+[data-plan] th,
+[data-plan] td {
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+    overflow-wrap: normal;
+}
+
+[data-plan] th {
+    background: var(--surface-sunken);
+    font-weight: var(--weight-semibold);
+}
+
+[data-plan] hr {
+    margin: 1.25rem 0;
+    border: 0;
+    border-top: 1px solid var(--line);
+}
+
+[data-plan] details {
+    margin: 0.9rem 0;
+    padding: 0.25rem 0.8rem 0.55rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--paper);
+}
+
+[data-plan] summary {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+}
+
+[data-plan] img {
+    max-width: 100%;
+    height: auto;
+}
+
+[data-plan] del {
+    color: var(--muted);
+}
+
+@media (min-width: 800px) {
+    [data-plan] {
+        padding: 1.6rem 1.45rem 1.8rem;
+    }
+}
+
+/* Code fences — body with a language label, no fence markers. */
+
+.code-block {
+    margin: 0.9rem 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--surface-sunken);
+}
+
+.code-language {
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--line);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    user-select: none;
+}
+
+[data-plan] .code-block pre {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    white-space: pre;
+    overflow-wrap: normal;
+}
+
+/* Mermaid diagrams */
+
+.mermaid-canvas {
+    overflow-x: auto;
+}
+
+.mermaid-canvas svg {
+    max-width: 100%;
+    height: auto;
+}
+
+.mermaid-error {
+    margin: 0.4rem 0 0;
+    color: var(--danger-ink);
+}
+
+.mermaid-source {
+    margin-top: var(--space-2);
+}
+
+/* Diff fences — unified diff with old and new line numbers. */
+
+.diff-block {
+    margin: 1em 0;
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    color: var(--editor-text);
+    background: var(--editor-bg);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.diff-editor {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(2.5ch, max-content)) 2ch minmax(0, 1fr);
+    min-width: max-content;
+}
+
+.diff-title {
+    padding: var(--space-2) var(--space-3);
+    color: var(--editor-number);
+    background: var(--editor-gutter);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    user-select: none;
+}
+
+.diff-line {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    min-height: 20px;
+    line-height: 20px;
+}
+
+.diff-number {
+    padding-inline: var(--space-1);
+    color: var(--editor-number);
+    background: var(--editor-gutter);
+    border-right: 1px solid var(--line);
+    text-align: right;
+    user-select: none;
+}
+
+.diff-marker {
+    color: var(--editor-number);
+    text-align: center;
+    user-select: none;
+}
+
+.diff-content {
+    padding-right: var(--space-4);
+    white-space: pre;
+}
+
+.diff-add {
+    background: var(--editor-add-bg);
+}
+
+.diff-add .diff-marker {
+    color: var(--editor-add-mark);
+    font-weight: var(--weight-bold);
+}
+
+.diff-del {
+    background: var(--editor-del-bg);
+}
+
+.diff-del .diff-marker {
+    color: var(--editor-del-mark);
+    font-weight: var(--weight-bold);
+}
+
+.diff-hunk {
+    color: var(--editor-info-text);
+    background: var(--editor-info-bg);
+}
+
+.diff-meta {
+    color: var(--editor-number);
+    background: var(--editor-gutter);
+}
+
+.diff-hunk .diff-content,
+.diff-meta .diff-content {
+    grid-column: 2 / -1;
+}
+
+.diff-hunk .diff-number:nth-child(2),
+.diff-meta .diff-number:nth-child(2),
+.diff-hunk .diff-marker,
+.diff-meta .diff-marker {
+    display: none;
+}
+
+/* Decision fences — question cards inside the plan. */
+
+.decision-block {
+    margin-block: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    overflow-wrap: anywhere;
+}
+
+.decision-heading,
+.decision-response {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.decision-question {
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-base);
+}
+
+[data-plan] .decision-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    list-style: none;
+    padding: 0;
+}
+
+.decision-options > li {
+    padding: 0.35rem 0.65rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+}
+
+.decision-response p {
+    margin: 0;
+}
+
+.decision-hint {
+    margin-bottom: 0;
+    color: var(--muted);
+    font-size: var(--text-sm);
+}

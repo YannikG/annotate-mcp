@@ -1,0 +1,16 @@
+<div class="code-block" data-code-fence>
+    @if (Language.Length > 0)
+    {
+        <div class="code-language">@Language</div>
+    }
+    <pre><code class="@(Language.Length == 0 ? null : $"language-{Language}")">@foreach (CodeSourceLine line in CodeFenceContent.Lines(Source, Fence))
+{<span data-block-index="@Ordinal" data-seg-start="@line.Start" data-seg-end="@line.End"><AnnotationText Source="@Source" Ordinal="Ordinal" Start="line.Start" End="line.End" /></span>@(line.HasNewline ? "\n" : "")}</code></pre>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Source { get; set; } = "";
+    [Parameter, EditorRequired] public CodeBlock Fence { get; set; } = default!;
+    [Parameter, EditorRequired] public int Ordinal { get; set; }
+
+    private string Language => CodeFenceContent.Language(Fence);
+}

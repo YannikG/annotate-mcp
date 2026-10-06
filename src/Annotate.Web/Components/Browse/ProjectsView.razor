@@ -1,0 +1,32 @@
+<div class="frame">
+    <header class="page-title">
+        <div class="title-block">
+            <h1>Projects</h1>
+            <p class="page-description">Browse each project's plans and review history.</p>
+        </div>
+        <a class="btn btn-secondary" href="/">Back to dashboard</a>
+    </header>
+    <section>
+        <h2>Active projects <span class="section-count">@Model.Projects.Count</span></h2>
+        @if (Model.Projects.Count == 0)
+        {
+            <EmptyState Title="No projects yet. A project appears when its first plan is submitted." />
+        }
+        else
+        {
+            <ProjectCards Projects="Model.Projects" />
+        }
+    </section>
+    @if (Model.Archived.Count > 0)
+    {
+        <section>
+            <h2>Archived projects <span class="section-count">@Model.Archived.Count</span></h2>
+            <ProjectCards Projects="Model.Archived" Archived="true" />
+        </section>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public ProjectsViewModel Model { get; set; } = default!;
+}

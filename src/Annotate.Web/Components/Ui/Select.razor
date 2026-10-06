@@ -1,0 +1,125 @@
+<span class="select" @attributes="AdditionalAttributes">
+    <span class="select-label" id="@labelId">@Label</span>
+    <span class="select-control">
+        <button type="button" class="select-trigger" id="@triggerId" data-select-trigger
+                aria-haspopup="listbox" aria-expanded="@(open ? "true" : "false")" aria-controls="@listId"
+                aria-labelledby="@labelId @triggerId"
+                aria-activedescendant="@(open ? OptionId(active) : null)"
+                @onclick="Toggle" @onkeydown="OnKey">
+            <span class="select-value">@CurrentLabel</span>
+        </button>
+        @if (open)
+        {
+            <button type="button" class="backdrop" data-select-dismiss aria-label="Close" tabindex="-1" @onclick="Close"></button>
+            <ul class="select-list" id="@listId" role="listbox" aria-labelledby="@labelId">
+                @for (int i = 0; i < Options.Count; i++)
+                {
+                    int index = i;
+                    <li class="select-option" id="@OptionId(index)" role="option"
+                        aria-selected="@(Options[index].Value == Value ? "true" : "false")"
+                        data-active="@(index == active ? "true" : null)"
+                        @onclick="() => Choose(index)" @onmouseenter="() => active = index">
+                        @Options[index].Label
+                    </li>
+                }
+            </ul>
+        }
+    </span>
+</span>
+
+@code {
+    private readonly string id = Guid.NewGuid().ToString("N");
+
+    private bool open;
+
+    private int active;
+
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = "";
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<SelectOption> Options { get; set; } = [];
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string CurrentLabel =>
+        Options.FirstOrDefault(option => option.Value == Value)?.Label ?? Value ?? "";
+
+    protected override void OnParametersSet()
+    {
+        int index = IndexOf(Value);
+        active = index >= 0 ? index : 0;
+    }
+
+    private int IndexOf(string? value)
+    {
+        for (int i = 0; i < Options.Count; i++)
+        {
+            if (Options[i].Value == value)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private void Toggle() => open = !open;
+
+    private void Close() => open = false;
+
+    private async Task OnKey(KeyboardEventArgs args)
+    {
+        switch (args.Key)
+        {
+            case "ArrowDown" when open:
+                await Move(1);
+                break;
+            case "ArrowUp" when open:
+                await Move(-1);
+                break;
+            case "Escape" or "Tab":
+                open = false;
+                break;
+        }
+    }
+
+    private async Task Move(int delta)
+    {
+        if (Options.Count == 0)
+        {
+            return;
+        }
+
+        active = (active + delta + Options.Count) % Options.Count;
+        if (Options[active].Value != Value)
+        {
+            await ValueChanged.InvokeAsync(Options[active].Value);
+        }
+    }
+
+    private async Task Choose(int index)
+    {
+        open = false;
+        active = index;
+        if (Options[index].Value != Value)
+        {
+            await ValueChanged.InvokeAsync(Options[index].Value);
+        }
+    }
+
+    private string OptionId(int index) => $"select-option-{id}-{index}";
+
+    private string labelId => $"select-label-{id}";
+
+    private string triggerId => $"select-trigger-{id}";
+
+    private string listId => $"select-list-{id}";
+}

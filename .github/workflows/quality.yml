@@ -1,0 +1,73 @@
+name: Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Install ast-grep 0.45.3
+        run: npm install --prefix "$RUNNER_TEMP/sg" --allow-scripts=@ast-grep/cli @ast-grep/cli@0.45.3
+      - name: Put ast-grep on PATH
+        run: echo "$RUNNER_TEMP/sg/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Check
+        run: ./build/check.sh
+
+  contributors:
+    name: contributors
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+      - name: Allow maintainers and listed logins
+        env:
+          ACTOR: ${{ github.event.pull_request.user.login }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          perm=""
+          if json="$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${ACTOR}/permission" 2>/dev/null)"; then
+            perm="$(printf '%s' "$json" | jq -r '.permission')"
+          fi
+          case "$perm" in
+            admin|maintain) exit 0 ;;
+          esac
+          while IFS= read -r line || [[ -n "$line" ]]; do
+            line="${line#"${line%%[![:space:]]*}"}"
+            line="${line%"${line##*[![:space:]]}"}"
+            [[ -z "$line" || "$line" == \#* ]] && continue
+            if [[ "${line,,}" == "${ACTOR,,}" ]]; then
+              exit 0
+            fi
+          done < CONTRIBUTORS.md
+          echo "${ACTOR} is not allowed to open a pull request."
+          exit 1
+
+  issue-link:
+    name: issue-link
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require an issue link
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+          if printf '%s' "$BODY" | grep -Eiq "https://github.com/${GITHUB_REPOSITORY}/issues/[0-9]+|(^|[^[:alnum:]_])#[0-9]+"; then
+            exit 0
+          fi
+          echo "The pull request body must link an issue in this repository."
+          exit 1

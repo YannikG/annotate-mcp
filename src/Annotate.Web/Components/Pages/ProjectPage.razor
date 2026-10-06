@@ -1,0 +1,148 @@
+@page "/projects/{Id}"
+@inject IPlans Plans
+@inject IReviews Reviews
+@inject IProjectPlanPages PlanPages
+@inject NavigationManager Navigation
+
+<PageTitle>@(model?.DisplayName ?? "Project") · Annotate</PageTitle>
+
+@if (missing)
+{
+    <div class="frame">
+        <h1>Not found</h1>
+    </div>
+}
+else if (model is not null)
+{
+    <ProjectView Model="model" Rename="Rename" Archive="Archive" Restore="Restore" Delete="Delete"
+        TabSelected="SelectTab" PageSelected="SelectPage" />
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = "";
+
+    private ProjectViewModel? model;
+
+    private string? loadedId;
+
+    private bool missing;
+
+    private ProjectPlanTab tab = ProjectPlanTab.Pending;
+
+    private int pageNumber = 1;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (loadedId == Id)
+        {
+            return;
+        }
+
+        loadedId = Id;
+        tab = ProjectPlanTab.Pending;
+        pageNumber = 1;
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        ProjectSummary? project = await Plans.ProjectAsync(new ProjectId(Id), CancellationToken.None);
+        if (project is null)
+        {
+            model = null;
+            missing = true;
+            return;
+        }
+
+        missing = false;
+        ProjectPlanListing listing = await PlanPages.PageAsync(project.ProjectId, tab, pageNumber, CancellationToken.None);
+        model = new ProjectViewModel(
+            project.DisplayName,
+            project.FolderPath,
+            null,
+            listing,
+            project.Archived,
+            tab,
+            pageNumber);
+    }
+
+    private async Task SelectTab(ProjectPlanTab next)
+    {
+        tab = next;
+        pageNumber = 1;
+        await Load();
+    }
+
+    private async Task SelectPage(int next)
+    {
+        pageNumber = next < 1 ? 1 : next;
+        await Load();
+    }
+
+    private async Task Rename(string displayName)
+    {
+        RenameOutcome outcome = await Plans.RenameProjectAsync(new ProjectId(Id), displayName, CancellationToken.None);
+        if (outcome is RenameOutcome.Refused refused)
+        {
+            if (model is not null)
+            {
+                model = model with { Error = refused.Error };
+            }
+
+            return;
+        }
+
+        await Load();
+    }
+
+    private async Task Archive()
+    {
+        ProjectChange outcome = await Plans.ArchiveProjectAsync(new ProjectId(Id), CancellationToken.None);
+        if (outcome is ProjectChange.Refused refused)
+        {
+            if (model is not null)
+            {
+                model = model with { Error = refused.Error };
+            }
+
+            return;
+        }
+
+        Navigation.NavigateTo("/projects");
+    }
+
+    private async Task Restore()
+    {
+        ProjectChange outcome = await Plans.RestoreProjectAsync(new ProjectId(Id), CancellationToken.None);
+        if (outcome is ProjectChange.Refused refused)
+        {
+            if (model is not null)
+            {
+                model = model with { Error = refused.Error };
+            }
+
+            return;
+        }
+
+        await Load();
+    }
+
+    private async Task Delete()
+    {
+        ProjectChange outcome = await Plans.DeleteProjectAsync(new ProjectId(Id), CancellationToken.None);
+        if (outcome is ProjectChange.Refused refused)
+        {
+            if (model is not null)
+            {
+                model = model with { Error = refused.Error };
+            }
+
+            return;
+        }
+
+        ProjectChange.Done done = (ProjectChange.Done)outcome;
+        await Reviews.RemoveRevisionsAsync(done.RevisionIds, CancellationToken.None);
+        Navigation.NavigateTo("/projects");
+    }
+}

@@ -1,0 +1,13 @@
+@if (Model.Revisions.Count > 0)
+{
+    <Select Label="Revision" Value="@Model.SelectedId" Options="Options" ValueChanged="RevisionChanged" data-revision />
+}
+
+@code {
+    [Parameter, EditorRequired] public PlanViewModel Model { get; set; } = default!;
+    [Parameter] public EventCallback<string> RevisionChanged { get; set; }
+
+    private SelectOption[] Options => Model.Revisions
+        .Select(revision => new SelectOption(revision.RevisionId, RevisionLabel.Format(revision)))
+        .ToArray();
+}

@@ -1,0 +1,13 @@
+<div class="review-board">
+    <div class="plan-column">
+        <div class="panel-tools-left"><ContentsNav Markdown="@Markdown" ShowTrigger="false" /></div>
+        <div class="panel-tools-right">@Panels</div>
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Markdown { get; set; } = "";
+    [Parameter] public RenderFragment? Panels { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

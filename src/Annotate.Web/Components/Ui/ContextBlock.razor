@@ -1,0 +1,10 @@
+<div @attributes="AdditionalAttributes" class="context-block">
+    <h2>@Label</h2>
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+}

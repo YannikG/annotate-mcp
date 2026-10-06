@@ -1,0 +1,84 @@
+@if (decision is not null && question is not null)
+{
+    <section class="decision-block" data-decision-block="@decision.Id">
+        <div class="decision-heading">
+            <span class="kind">Decision</span>
+            <Badge>@(decision.Kind == DecisionKind.Choice ? "Choice" : "Written answer")</Badge>
+        </div>
+        <p class="decision-question" data-decision-question><span @attributes="Attributes(question)"><AnnotationText Source="@Source" Ordinal="Ordinal" Start="question.Start" End="@(question.Start + question.Text.Length)" /></span></p>
+        @if (decision.Kind == DecisionKind.Choice)
+        {
+            <ul class="decision-options">
+                @foreach (Segment option in options)
+                {
+                    <li data-decision-option><span @attributes="Attributes(option)"><AnnotationText Source="@Source" Ordinal="Ordinal" Start="option.Start" End="@(option.Start + option.Text.Length)" /></span></li>
+                }
+                <li data-decision-option>Other</li>
+            </ul>
+        }
+        @if (answer is not null)
+        {
+            <div class="decision-response">
+                <p><span class="detail-label">Answer</span> <span data-decision-answer>@answer.Answer</span></p>
+                @if (Review?.Pending == true && Review.Open.HasDelegate)
+                {
+                    <Button data-answer-decision="@decision.Id" OnClick="() => Review.Open.InvokeAsync(decision.Id)">Answer</Button>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="decision-hint">Answer this decision in its review.</p>
+        }
+    </section>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Source { get; set; } = "";
+    [Parameter, EditorRequired] public CodeBlock Fence { get; set; } = default!;
+    [Parameter, EditorRequired] public int Ordinal { get; set; }
+    [CascadingParameter] public IReadOnlyList<DecisionPrompt>? Decisions { get; set; }
+    [CascadingParameter] public ReviewDecisionContext? Review { get; set; }
+
+    private DecisionPrompt? decision;
+    private PromptRow? answer;
+    private Segment? question;
+    private readonly List<Segment> options = [];
+
+    protected override void OnParametersSet()
+    {
+        decision = Decisions?.FirstOrDefault(item => item.Start == Fence.Start && item.End == Fence.End);
+        answer = Review?.Prompts.FirstOrDefault(item => item.Id == decision?.Id);
+        question = null;
+        options.Clear();
+        int cursor = Source.IndexOf('\n', Fence.Start) + 1;
+        foreach (string raw in Fence.Body.Split('\n'))
+        {
+            string line = raw.TrimEnd('\r');
+            if (line.Length == 0) continue;
+            int start = Source.IndexOf(line, cursor, Fence.End - cursor, StringComparison.Ordinal);
+            if (start < 0) continue;
+            cursor = start + line.Length;
+            if (line.StartsWith("prompt:", StringComparison.Ordinal))
+            {
+                string text = line[7..].Trim();
+                question = new(text, start + line.IndexOf(text, 7, StringComparison.Ordinal));
+            }
+            else if (line.StartsWith("- ", StringComparison.Ordinal))
+            {
+                string text = line[2..].Trim();
+                if (!text.Equals("Other", StringComparison.OrdinalIgnoreCase))
+                    options.Add(new(text, start + line.IndexOf(text, 2, StringComparison.Ordinal)));
+            }
+        }
+    }
+
+    private Dictionary<string, object> Attributes(Segment segment) => new()
+    {
+        ["data-block-index"] = Ordinal,
+        ["data-seg-start"] = segment.Start,
+        ["data-seg-end"] = segment.Start + segment.Text.Length,
+    };
+
+    private sealed record Segment(string Text, int Start);
+}

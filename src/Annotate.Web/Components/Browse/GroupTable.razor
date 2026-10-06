@@ -1,0 +1,39 @@
+<section class="dashboard-panel" aria-labelledby="@HeadingId">
+    <h2 id="@HeadingId">@Title</h2>
+    <table class="dashboard-table">
+        <thead>
+            <tr><th>Name</th><th>Revisions</th><th>Plans</th><th>Approval</th><th>First pass</th><th>Rounds</th></tr>
+        </thead>
+        <tbody>
+            @foreach (GroupStat row in Rows)
+            {
+                <tr data-agent-row="@Agent" data-model-row="@Model">
+                    <td>@row.Name</td>
+                    <td>@row.Revisions</td>
+                    <td>@row.Plans</td>
+                    <td>@row.Approval</td>
+                    <td>@row.FirstPass</td>
+                    <td>@row.Rounds</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public string HeadingId { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<GroupStat> Rows { get; set; } = [];
+
+    [Parameter, EditorRequired]
+    public string RowAttribute { get; set; } = "";
+
+    private string? Agent => RowAttribute == "data-agent-row" ? "" : null;
+
+    private string? Model => RowAttribute == "data-model-row" ? "" : null;
+}

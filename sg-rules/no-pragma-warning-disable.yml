@@ -1,0 +1,17 @@
+id: no-pragma-warning-disable
+language: CSharp
+severity: error
+message: "#pragma warning disable is not allowed."
+files:
+  - src/**/*.cs
+  - src/**/*.razor
+  - tests/**/*.cs
+  - tests/**/*.razor
+ignores:
+  - "**/bin/**"
+  - "**/obj/**"
+  - "**/Migrations/**"
+  - "**/*.g.cs"
+rule:
+  kind: preproc_pragma
+  regex: "^#pragma warning disable"

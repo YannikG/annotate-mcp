@@ -1,0 +1,69 @@
+@foreach (Inline inline in Inlines)
+{
+    @if (inline is TextInline text)
+    {
+        <span data-block-index="@Ordinal" data-seg-start="@text.Start" data-seg-end="@text.End"><AnnotationText Source="@Source" Ordinal="Ordinal" Start="text.Start" End="text.End" /></span>
+    }
+    else if (inline is CodeInline span)
+    {
+        <code data-block-index="@Ordinal" data-seg-start="@span.Start" data-seg-end="@span.End"><AnnotationText Source="@Source" Ordinal="Ordinal" Start="span.Start" End="span.End" /></code>
+    }
+    else if (inline is EmphasisInline emphasis)
+    {
+        @if (emphasis.Level >= 2)
+        {
+            <strong><InlineView Source="@Source" Inlines="emphasis.Children" Ordinal="Ordinal" /></strong>
+        }
+        else
+        {
+            <em><InlineView Source="@Source" Inlines="emphasis.Children" Ordinal="Ordinal" /></em>
+        }
+    }
+    else if (inline is StrikeInline strike)
+    {
+        <del><InlineView Source="@Source" Inlines="strike.Children" Ordinal="Ordinal" /></del>
+    }
+    else if (inline is LinkInline link)
+    {
+        @if (link.Destination is null)
+        {
+            <InlineView Source="@Source" Inlines="link.Children" Ordinal="Ordinal" />
+        }
+        else
+        {
+            <a href="@link.Destination"><InlineView Source="@Source" Inlines="link.Children" Ordinal="Ordinal" /></a>
+        }
+    }
+    else if (inline is ImageInline image)
+    {
+        @if (image.Destination is null)
+        {
+            <InlineView Source="@Source" Inlines="image.Children" Ordinal="Ordinal" />
+        }
+        else
+        {
+            <img src="@image.Destination" alt="@Alt(image)" />
+        }
+    }
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public string Source { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<Inline> Inlines { get; set; } = [];
+
+    [Parameter, EditorRequired]
+    public int Ordinal { get; set; }
+
+    private string Alt(ImageInline image)
+    {
+        if (image.Children.Count == 0)
+        {
+            return "";
+        }
+
+        return SourceSlice.Read(Source, image.Children[0].Start, image.Children[^1].End);
+    }
+}

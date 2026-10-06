@@ -1,0 +1,55 @@
+﻿@using Microsoft.JSInterop
+@inherits LayoutComponentBase
+@inject IJSRuntime JS
+
+<CascadingValue Value="CurrentTheme">
+<div class="shell @Theme">
+    <header>
+        <div class="header-inner">
+            <a class="mark" href="/">Annotate</a>
+            <nav class="site-nav" aria-label="Primary">
+                <NavLink href="/" Match="NavLinkMatch.All">Dashboard</NavLink>
+                <NavLink href="/projects">Projects</NavLink>
+            </nav>
+            <ThemeSwitch Dark="dark" Toggle="ToggleTheme" />
+        </div>
+    </header>
+    <main>
+        @Body
+    </main>
+    <footer><span class="hint"><kbd>d</kbd> delete</span><span class="visually-hidden">, </span><span class="hint"><kbd>r</kbd> replace</span><span class="visually-hidden">, </span><span class="hint"><kbd>s</kbd> insert</span><span class="visually-hidden">, </span><span class="hint"><kbd>c</kbd> comment</span></footer>
+</div>
+</CascadingValue>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+    private bool dark;
+
+    private string Theme => dark ? "dark" : "light";
+
+    private ShellTheme CurrentTheme => new(dark, EventCallback.Factory.Create(this, ToggleTheme));
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            bool saved = await JS.InvokeAsync<bool>("annotateTheme.isDark");
+            if (saved != dark)
+            {
+                dark = saved;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task ToggleTheme()
+    {
+        dark = !dark;
+        await JS.InvokeVoidAsync("annotateTheme.setDark", dark);
+    }
+}

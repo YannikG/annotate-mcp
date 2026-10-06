@@ -1,0 +1,35 @@
+@using System.Globalization
+
+<li class="plan-card" data-plan-card>
+    <div class="card-heading">
+        <a class="card-title" href="@(ReviewId is null ? $"/plans/{PlanId}" : $"/review/{ReviewId}")">@Title</a>
+        <Badge Tone="@StatusKey">@Status</Badge>
+    </div>
+    <div class="card-meta">
+        @if (ProjectId is not null)
+        {
+            <a class="project-link" href="/projects/@ProjectId">@ProjectName</a>
+        }
+        else if (ProjectName is not null)
+        {
+            <span>@ProjectName</span>
+        }
+        <span>v@(RevisionNumber)</span>
+        @if (UpdatedAt is DateTimeOffset date)
+        {
+            <span>Updated <time datetime="@date.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)" title="UTC">@date.ToUniversalTime().ToString("dd MMM yyyy, HH:mm", CultureInfo.InvariantCulture) UTC</time></span>
+        }
+    </div>
+</li>
+
+@code {
+    [Parameter, EditorRequired] public string PlanId { get; set; } = "";
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public int RevisionNumber { get; set; }
+    [Parameter] public DateTimeOffset? UpdatedAt { get; set; }
+    [Parameter] public string Status { get; set; } = "No review";
+    [Parameter] public string StatusKey { get; set; } = "none";
+    [Parameter] public string? ReviewId { get; set; }
+    [Parameter] public string? ProjectId { get; set; }
+    [Parameter] public string? ProjectName { get; set; }
+}

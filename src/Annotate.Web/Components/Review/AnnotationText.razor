@@ -1,0 +1,64 @@
+@if (matches.Length == 0)
+{
+    @SourceSlice.Read(Source, Start, End)
+}
+else
+{
+    @foreach (Piece piece in pieces)
+    {
+        @if (piece.Annotations.Length == 0)
+        {
+            <span data-block-index="@Ordinal" data-seg-start="@piece.Start" data-seg-end="@piece.End">@SourceSlice.Read(Source, piece.Start, piece.End)</span>
+        }
+        else
+        {
+            <mark class="annotation-mark" data-annotation-kinds="@Kinds(piece)" title="@Comments(piece)">
+                @if (piece.Annotations.Any(a => a.Kind is AnnotationKind.Deletion or AnnotationKind.Replacement))
+                {
+                    <del><span data-block-index="@Ordinal" data-seg-start="@piece.Start" data-seg-end="@piece.End">@SourceSlice.Read(Source, piece.Start, piece.End)</span></del>
+                }
+                else
+                {
+                    <span data-block-index="@Ordinal" data-seg-start="@piece.Start" data-seg-end="@piece.End">@SourceSlice.Read(Source, piece.Start, piece.End)</span>
+                }
+            </mark>
+        }
+        @foreach (Annotation annotation in matches.Where(a => a.EndOffset == piece.End
+            && a.Kind is AnnotationKind.Replacement or AnnotationKind.Insertion && !string.IsNullOrEmpty(a.Replacement)))
+        {
+            <ins class="annotation-add" data-annotation-extra data-annotation-id="@annotation.Id" aria-label="Suggested @annotation.Kind">@annotation.Replacement</ins>
+        }
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public string Source { get; set; } = "";
+    [Parameter] public int Ordinal { get; set; }
+    [Parameter] public int Start { get; set; }
+    [Parameter] public int End { get; set; }
+    [CascadingParameter(Name = "Annotations")] public IReadOnlyList<Annotation>? Annotations { get; set; }
+
+    private Annotation[] matches = [];
+    private Piece[] pieces = [];
+
+    protected override void OnParametersSet()
+    {
+        matches = Annotations?.Where(a => a.BlockOrdinal == Ordinal && a.StartOffset >= 0
+            && a.EndOffset <= Source.Length && a.EndOffset > a.StartOffset
+            && a.StartOffset < End && a.EndOffset > Start).ToArray() ?? [];
+        if (matches.Length == 0)
+        {
+            pieces = [];
+            return;
+        }
+        int[] boundaries = matches.SelectMany(a => new[] { Math.Max(Start, a.StartOffset), Math.Min(End, a.EndOffset) })
+            .Append(Start).Append(End).Distinct().Order().ToArray();
+        pieces = boundaries.Zip(boundaries.Skip(1), (start, end) => new Piece(start, end,
+            matches.Where(a => a.StartOffset < end && a.EndOffset > start).ToArray())).ToArray();
+    }
+
+    private static string Kinds(Piece piece) => string.Join(" ", piece.Annotations.Select(a => a.Kind).Distinct());
+    private static string Comments(Piece piece) => string.Join("\n", piece.Annotations
+        .Where(a => !string.IsNullOrEmpty(a.Comment)).Select(a => a.Comment));
+    private sealed record Piece(int Start, int End, Annotation[] Annotations);
+}

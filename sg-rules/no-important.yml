@@ -1,0 +1,11 @@
+id: no-important
+language: Css
+severity: error
+message: "!important is not allowed."
+files:
+  - src/Annotate.Web/**/*.css
+ignores:
+  - "**/bin/**"
+  - "**/obj/**"
+rule:
+  kind: important

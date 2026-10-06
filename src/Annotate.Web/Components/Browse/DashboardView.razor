@@ -1,0 +1,164 @@
+<div class="frame" data-dashboard>
+    <header class="page-title">
+        <div class="title-block">
+            <h1>Dashboard</h1>
+            <p class="page-description">How reviewing is going across active projects.</p>
+        </div>
+    </header>
+    @if (Model.Empty)
+    {
+        <EmptyState Title="No projects yet. Submit a plan from an agent to create one." />
+    }
+    else
+    {
+        <section aria-labelledby="pending-heading" data-pending>
+            <h2 id="pending-heading">Pending plans</h2>
+            @if (Model.Pending.Count == 0)
+            {
+                <EmptyState Title="No plans are waiting." />
+            }
+            else
+            {
+                <ul class="stack plan-list">
+                    @foreach (ReviewLink plan in Model.Pending)
+                    {
+                        <PlanListItem PlanId="@plan.PlanId" Title="@plan.Title" RevisionNumber="@plan.RevisionNumber"
+                            UpdatedAt="@plan.Date" Status="Pending" StatusKey="@StatusTone.Pending" ReviewId="@plan.ReviewId"
+                            ProjectId="@plan.ProjectId" ProjectName="@plan.ProjectName" />
+                    }
+                </ul>
+            }
+        </section>
+        <section class="metric-grid" aria-label="Headline metrics">
+            <MetricCard Id="approval-rate" Label="Approval rate" Metric="Model.Approval" />
+            <MetricCard Id="first-pass" Label="First-pass approval" Metric="Model.FirstPass" />
+            <MetricCard Id="time-to-decision" Label="Time to decision" Metric="Model.Turnaround" />
+            <MetricCard Id="feedback" Label="Feedback per change request" Metric="Model.Feedback" />
+            <MetricCard Id="activity" Label="Activity" Metric="Model.Activity" />
+        </section>
+        <section class="dashboard-panel" aria-labelledby="week-heading">
+            <h2 id="week-heading">Review outcomes</h2>
+            <p class="page-description">Approved and changes requested, by decision week.</p>
+            <div class="week-chart">
+                <div class="week-axis" aria-hidden="true">
+                    @for (int index = 0; index < Axis.Length; index++)
+                    {
+                        string place = index == 0 ? "top" : index == Axis.Length - 1 ? "zero" : "mid";
+                        <span class="week-tick week-tick-@place" data-axis-tick>@Axis[index]</span>
+                    }
+                </div>
+                <svg class="week-plot" viewBox="0 0 120 100" preserveAspectRatio="none" role="img" aria-labelledby="week-heading">
+                    <line class="week-grid" x1="0" y1="0" x2="120" y2="0" vector-effect="non-scaling-stroke"></line>
+                    @if (Axis.Length == 3)
+                    {
+                        <line class="week-grid" x1="0" y1="50" x2="120" y2="50" vector-effect="non-scaling-stroke"></line>
+                    }
+                    <line class="week-grid" x1="0" y1="100" x2="120" y2="100" vector-effect="non-scaling-stroke"></line>
+                    @for (int index = 0; index < Model.Weeks.Count; index++)
+                    {
+                        WeekBar week = Model.Weeks[index];
+                        double origin = index * Slot + (Slot - BarWidth * 2 - BarGap) / 2;
+                        double approved = 100.0 * week.Approved / Ceiling;
+                        double changes = 100.0 * week.Changes / Ceiling;
+                        <rect class="week-approved" x="@N(origin)" y="@N(100 - approved)" width="@N(BarWidth)" height="@N(approved)"></rect>
+                        <rect class="week-changes" x="@N(origin + BarWidth + BarGap)" y="@N(100 - changes)" width="@N(BarWidth)" height="@N(changes)"></rect>
+                    }
+                </svg>
+                <div class="week-labels">
+                    @foreach (WeekBar week in Model.Weeks)
+                    {
+                        <span class="week-label">@week.Label</span>
+                    }
+                </div>
+            </div>
+            <p class="chart-legend"><span class="legend-approved">Approved</span><span class="legend-changes">Changes requested</span></p>
+            <table class="visually-hidden">
+                <caption>Review outcomes by week</caption>
+                <thead>
+                    <tr><th>Week</th><th>Approved</th><th>Changes requested</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (WeekBar week in Model.Weeks)
+                    {
+                        <tr data-week="@week.Key">
+                            <td>@week.Label</td>
+                            <td data-approved>@week.Approved</td>
+                            <td data-changes>@week.Changes</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+        <section class="dashboard-panel" aria-labelledby="projects-heading">
+            <h2 id="projects-heading">Projects</h2>
+            <DashboardTable Rows="Model.Projects" />
+        </section>
+        <div class="dashboard-split">
+            <GroupTable Title="Agents" HeadingId="agents-heading" Rows="Model.Agents" RowAttribute="data-agent-row" />
+            <GroupTable Title="Models" HeadingId="models-heading" Rows="Model.Models" RowAttribute="data-model-row" />
+        </div>
+        <section class="dashboard-panel" aria-labelledby="switches-heading">
+            <h2 id="switches-heading">Switches</h2>
+            @if (Model.Switches.Count == 0)
+            {
+                <EmptyState Title="No plan has changed agent or model." />
+            }
+            else
+            {
+                <table class="dashboard-table">
+                    <thead><tr><th>Plan</th><th>Agents</th><th>Models</th></tr></thead>
+                    <tbody>
+                        @foreach (SwitchStat item in Model.Switches)
+                        {
+                            <tr data-switch-row>
+                                <td><a href="/plans/@item.PlanId">@item.Title</a></td>
+                                <td>@item.Agents</td>
+                                <td>@item.Models</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public DashboardModel Model { get; set; } = default!;
+
+    private int Ceiling
+    {
+        get
+        {
+            int peak = 0;
+            foreach (WeekBar week in Model.Weeks)
+            {
+                peak = Math.Max(peak, Math.Max(week.Approved, week.Changes));
+            }
+
+            if (peak <= 1)
+            {
+                return 1;
+            }
+
+            if (peak <= 10)
+            {
+                return peak % 2 == 0 ? peak : peak + 1;
+            }
+
+            int step = peak <= 20 ? 2 : 10;
+            return ((peak + step - 1) / step) * step;
+        }
+    }
+
+    private int[] Axis => Ceiling == 1 ? [1, 0] : [Ceiling, Ceiling / 2, 0];
+
+    private double Slot => Model.Weeks.Count == 0 ? 1 : 120.0 / Model.Weeks.Count;
+
+    private double BarWidth => Slot * 0.32;
+
+    private double BarGap => Slot * 0.08;
+
+    private static string N(double value) => FormattableString.Invariant($"{value:0.#}");
+}

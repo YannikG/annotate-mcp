@@ -1,0 +1,44 @@
+name: Labels
+
+on:
+  push:
+    branches: [main]
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync labels
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 build/sync-labels.py
+
+  apply:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apply the label chosen on the form
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BODY: ${{ github.event.issue.body }}
+          NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          label="$(printf '%s\n' "$BODY" | awk '
+            $0 == "### Label" { grab = 1; next }
+            grab && $0 == "" { next }
+            grab { print; exit }
+          ')"
+          case "$label" in
+            bug|enhancement|docs|ci|question) ;;
+            *) echo "No known label in the issue body."; exit 1 ;;
+          esac
+          gh issue edit "$NUMBER" --add-label "$label"

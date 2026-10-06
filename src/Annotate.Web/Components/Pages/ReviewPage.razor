@@ -1,0 +1,471 @@
+@page "/review/{Id}"
+@inject IPlans Plans
+@inject IReviews Reviews
+@inject ISelectionReader Selection
+@inject IAutoClosePreference Preferences
+@inject IReportScript Report
+
+<PageTitle>@(string.IsNullOrEmpty(planTitle) ? "Review" : planTitle) · Annotate</PageTitle>
+
+@if (notFound)
+{
+    <div class="frame">
+        <h1>Review not found</h1>
+    </div>
+}
+else if (failed)
+{
+    <div class="frame">
+        <h1>Could not load this review</h1>
+    </div>
+}
+else if (model is not null)
+{
+    <ReviewView Model="model" Key="OnKey" Approve="Approve" Download="Download" DismissReport="DismissReport" AutoCloseChanged="OnAutoClose" RequestChanges="RequestChanges" OpenPrompt="OpenPrompt" CloseDialog="CloseDialog" PreviousPrompt="PreviousPrompt" NextPrompt="NextPrompt" FinishPrompt="FinishPrompt" SaveNote="SaveNote" EditNote="EditNote" CancelNote="CancelNote" RetryDraft="RetryDraft" Select="OnSelect" Annotate="OnAnnotate" />
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = "";
+
+    private ReviewViewModel? model;
+
+    private RevisionDetail? revision;
+
+    private readonly List<Annotation> drafts = [];
+
+    private readonly ReviewPrompts prompts = new();
+
+    private readonly SubmitCountdown countdown = new();
+
+    private bool pending;
+
+    private bool autoClose;
+
+    private ReviewStatus status;
+
+    private bool notFound;
+
+    private bool failed;
+
+    private string? notice;
+
+    private string? reportFailure;
+
+    private DiffPanel? diff;
+
+    private NotePrompt? notePrompt;
+
+    private TextSelection? toolbar;
+
+    private string? loadedId;
+
+    private string planTitle = "";
+
+    private string? projectId;
+
+    private string? projectName;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (loadedId == Id)
+        {
+            return;
+        }
+
+        loadedId = Id;
+        drafts.Clear();
+        prompts.Load([], []);
+        countdown.Cancel();
+        notFound = false;
+        failed = false;
+        notice = null;
+        reportFailure = null;
+        draftSaveStatus = null;
+        autoClose = false;
+        diff = null;
+        notePrompt = null;
+        toolbar = null;
+        model = null;
+        planTitle = "";
+        projectId = null;
+        projectName = null;
+        ReviewDetail? review;
+        try
+        {
+            review = await Reviews.FindAsync(new ReviewId(Id), CancellationToken.None);
+        }
+        catch (Exception)
+        {
+            failed = true;
+            revision = null;
+            pending = false;
+            return;
+        }
+
+        if (review is null)
+        {
+            notFound = true;
+            revision = null;
+            pending = false;
+            return;
+        }
+
+        try
+        {
+            revision = await Plans.RevisionAsync(
+                new Annotate.Plans.Application.RevisionId(review.RevisionId.Value),
+                CancellationToken.None);
+        }
+        catch (Exception)
+        {
+            failed = true;
+            revision = null;
+            pending = false;
+            return;
+        }
+
+        drafts.AddRange(review.Annotations);
+        draftSaveStatus = review.Status == ReviewStatus.Pending && drafts.Count > 0 ? "Draft saved" : null;
+        status = review.Status;
+        pending = review.Status == ReviewStatus.Pending;
+        prompts.Load(review.Prompts, review.Answers);
+        if (revision is null)
+        {
+            failed = true;
+            return;
+        }
+
+        autoClose = await Preferences.ReadAsync(CancellationToken.None);
+        try
+        {
+            PlanDetail? plan = await Plans.PlanAsync(revision.PlanId, CancellationToken.None);
+            planTitle = plan?.Title ?? "";
+            if (plan is not null)
+            {
+                ProjectSummary? project = await Plans.ProjectAsync(plan.ProjectId, CancellationToken.None);
+                projectId = project?.ProjectId.Value;
+                projectName = project?.DisplayName;
+            }
+        }
+        catch (Exception)
+        {
+            planTitle = "";
+            projectId = null;
+            projectName = null;
+        }
+
+        Publish();
+    }
+
+    private async Task OnKey(ReviewKey key)
+    {
+        if (key.Key == "Escape")
+        {
+            notePrompt = null;
+            toolbar = null;
+            countdown.Cancel();
+            Publish();
+            return;
+        }
+
+        if (!pending)
+        {
+            return;
+        }
+
+        if (key.Key == "u")
+        {
+            if (drafts.Count > 0)
+            {
+                drafts.RemoveAt(drafts.Count - 1);
+                await PersistDrafts();
+            }
+
+            return;
+        }
+
+        if (key.Key == "d" && diff is not null)
+        {
+            diff = null;
+            notice = null;
+            Publish();
+            return;
+        }
+
+        AnnotationKind? kind = key.Key switch
+        {
+            "d" => AnnotationKind.Deletion,
+            "r" => AnnotationKind.Replacement,
+            "s" => AnnotationKind.Insertion,
+            "c" => AnnotationKind.Comment,
+            _ => null,
+        };
+        if (kind is null)
+        {
+            return;
+        }
+
+        TextSelection? selection = await Selection.ReadAsync();
+        if (!Usable(selection))
+        {
+            selection = toolbar;
+        }
+
+        if (!Usable(selection))
+        {
+            if (kind == AnnotationKind.Deletion)
+            {
+                await OpenDiff();
+            }
+
+            return;
+        }
+
+        TextSelection chosen = selection!;
+        toolbar = null;
+        if (kind is AnnotationKind.Replacement or AnnotationKind.Insertion or AnnotationKind.Comment)
+        {
+            notePrompt = new NotePrompt(kind.Value, chosen);
+            Publish();
+            return;
+        }
+
+        drafts.Add(new Annotation(
+            Guid.NewGuid().ToString(),
+            AnnotationKind.Deletion,
+            chosen.Text,
+            null,
+            null,
+            chosen.BlockOrdinal,
+            chosen.Start,
+            chosen.End,
+            DateTimeOffset.UtcNow.ToString("u")));
+        countdown.Start();
+        await PersistDrafts();
+    }
+
+    private async Task OpenDiff()
+    {
+        if (revision is null)
+        {
+            return;
+        }
+
+        ReviewDiffAttempt attempt = await ReviewDiff.Open(Plans, revision, CancellationToken.None);
+        if (!attempt.Changed)
+        {
+            return;
+        }
+
+        diff = attempt.Panel;
+        notice = attempt.Notice;
+        Publish();
+    }
+
+    private async Task Approve()
+    {
+        if (!pending || prompts.Any)
+        {
+            return;
+        }
+
+        string reviewId = Id;
+        await draftSave;
+        if (reviewId != Id || !pending) return;
+        DecideOutcome outcome = await Reviews.ApproveAsync(new ReviewId(reviewId), CancellationToken.None);
+        await Finish(outcome, ReviewStatus.Approved);
+    }
+
+    private async Task Download()
+    {
+        if (!pending || prompts.Any || revision is null)
+        {
+            return;
+        }
+
+        ReportDownload download = await Report.DownloadAsync(
+            PlanReport.Html(revision.Summary, revision.StoryUrl, revision.AcceptanceCriteria, revision.Markdown),
+            "plan.html");
+        if (!download.Saved)
+        {
+            reportFailure = download.Error;
+            Publish();
+            return;
+        }
+
+        reportFailure = null;
+        await Approve();
+    }
+
+    private void DismissReport()
+    {
+        reportFailure = null;
+        Publish();
+    }
+
+    private async Task OnAutoClose(bool value)
+    {
+        if (await Preferences.WriteAsync(value, CancellationToken.None))
+        {
+            autoClose = value;
+        }
+
+        Publish();
+    }
+
+    private async Task RequestChanges()
+    {
+        if (!pending)
+        {
+            return;
+        }
+
+        string reviewId = Id;
+        await draftSave;
+        if (reviewId != Id || !pending) return;
+        DecideOutcome outcome = await Reviews.RequestChangesAsync(
+            new ReviewId(reviewId),
+            drafts.ToArray(),
+            CancellationToken.None);
+        await Finish(outcome, ReviewStatus.ChangesRequested);
+    }
+
+    private async Task Finish(DecideOutcome outcome, ReviewStatus decidedStatus)
+    {
+        countdown.Cancel();
+        if (outcome is DecideOutcome.Done)
+        {
+            status = decidedStatus;
+            pending = false;
+            drafts.Clear();
+            notePrompt = null;
+            toolbar = null;
+            draftSaveStatus = null;
+            reportFailure = null;
+        }
+
+        Publish();
+        if (outcome is DecideOutcome.Done && autoClose)
+        {
+            await Report.CloseAsync();
+        }
+    }
+
+    private void Publish()
+    {
+        if (revision is null)
+        {
+            return;
+        }
+
+        Annotation? activeNote = notePrompt is null
+            ? null
+            : new Annotation(
+                notePrompt.Id,
+                notePrompt.Kind,
+                notePrompt.Selection.Text,
+                null,
+                null,
+                notePrompt.Selection.BlockOrdinal,
+                notePrompt.Selection.Start,
+                notePrompt.Selection.End,
+                notePrompt.CreatedAt);
+        model = new ReviewViewModel(
+            StatusTone.Label(status),
+            pending,
+            pending && !prompts.Any,
+            revision.Summary,
+            revision.StoryUrl,
+            revision.AcceptanceCriteria,
+            revision.Markdown,
+            drafts.ToArray(),
+            countdown.Count,
+            countdown.Running,
+            prompts.Rows(),
+            prompts.Dialog(),
+            notice,
+            diff,
+            autoClose,
+            reportFailure,
+            planTitle,
+            notePrompt is null
+                ? null
+                : new NotePromptModel(NoteTitle(notePrompt.Kind), notePrompt.Selection.Text, notePrompt.Selection.Box),
+            notePrompt is null ? toolbar?.Box : null,
+            draftSaveStatus,
+            activeNote,
+            revision.Attribution,
+            projectId,
+            projectName);
+    }
+
+    private Task OnAnnotate(string key) => OnKey(new ReviewKey(key, ""));
+
+    private async Task OnSelect()
+    {
+        if (!pending || notePrompt is not null || diff is not null)
+        {
+            return;
+        }
+
+        TextSelection? selection = await Selection.ReadAsync();
+        toolbar = Usable(selection) && selection!.Box is not null ? selection : null;
+        Publish();
+    }
+
+    private static bool Usable(TextSelection? selection) =>
+        selection is not null && selection.Text.Length > 0 && selection.End > selection.Start;
+
+    private static string NoteTitle(AnnotationKind kind) => kind switch
+    {
+        AnnotationKind.Replacement => "Replace",
+        AnnotationKind.Insertion => "Insert",
+        AnnotationKind.Comment => "Comment",
+        _ => "Note",
+    };
+
+    private sealed record NotePrompt(AnnotationKind Kind, TextSelection Selection)
+    {
+        public string Id { get; } = Guid.NewGuid().ToString();
+        public string CreatedAt { get; } = DateTimeOffset.UtcNow.ToString("u");
+    }
+
+    private void OpenPrompt(string id)
+    {
+        if (prompts.Open(id, pending))
+        {
+            Publish();
+        }
+    }
+
+    private void CloseDialog()
+    {
+        prompts.Close();
+        Publish();
+    }
+
+    private void PreviousPrompt()
+    {
+        if (prompts.Previous())
+        {
+            Publish();
+        }
+    }
+
+    private async Task NextPrompt(DecisionDraft draft)
+    {
+        if (await prompts.Next(draft, Reviews, Id))
+        {
+            Publish();
+        }
+    }
+
+    private async Task FinishPrompt(DecisionDraft draft)
+    {
+        if (await prompts.Finish(draft, Reviews, Id))
+        {
+            Publish();
+        }
+    }
+}

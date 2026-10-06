@@ -1,0 +1,107 @@
+<Dialog LabelledBy="decision-prompt" Close="Close">
+    <p class="progress" data-progress>@($"{Model.Number} of {Model.Count}")</p>
+    <p class="dialog-prompt" id="decision-prompt" data-dialog-prompt>@Model.Prompt</p>
+    @if (!string.IsNullOrEmpty(Model.Error))
+    {
+        <p class="alert" data-error role="alert">@Model.Error</p>
+    }
+    @if (Model.Kind == PromptKind.Choice)
+    {
+        <div class="choices">
+            @foreach (string option in Model.Options)
+            {
+                <label class="choice">
+                    <input type="radio" name="decision" data-option="@option" checked="@(choice == option && !other)" @onclick="() => SelectOption(option)" />
+                    @option
+                </label>
+            }
+            <div class="other-answer">
+                <label class="choice">
+                    <input type="radio" name="decision" data-other checked="@other" @onclick="SelectOther" />
+                    Other
+                </label>
+                <input data-other-text aria-label="Other answer" maxlength="4000" disabled="@(!other)" value="@otherText" @oninput="OnOtherText" />
+            </div>
+        </div>
+    }
+    else
+    {
+        <textarea data-answer-text aria-label="Answer" maxlength="4000" @oninput="OnText">@text</textarea>
+    }
+    <div class="dialog-actions">
+        <div class="dialog-group" data-dialog-dismiss>
+            <Button Variant="ButtonVariant.Quiet" data-close OnClick="Close">Close</Button>
+            <Button data-previous Disabled="@(Model.Number == 1)" OnClick="Previous">Previous</Button>
+        </div>
+        <div class="dialog-group" data-dialog-forward>
+            @if (Model.Number < Model.Count)
+            {
+                <Button Variant="ButtonVariant.Primary" data-next OnClick="NextDraft">Next</Button>
+                <Button data-done OnClick="DoneDraft">Done</Button>
+            }
+            else
+            {
+                <Button Variant="ButtonVariant.Primary" data-done OnClick="DoneDraft">Done</Button>
+            }
+        </div>
+    </div>
+</Dialog>
+
+@code {
+    [Parameter, EditorRequired]
+    public DecisionDialogModel Model { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback Close { get; set; }
+
+    [Parameter]
+    public EventCallback Previous { get; set; }
+
+    [Parameter]
+    public EventCallback<DecisionDraft> Next { get; set; }
+
+    [Parameter]
+    public EventCallback<DecisionDraft> Done { get; set; }
+
+    private string loadedId = "";
+
+    private string choice = "";
+
+    private bool other;
+
+    private string otherText = "";
+
+    private string text = "";
+
+    protected override void OnParametersSet()
+    {
+        if (loadedId == Model.Id)
+        {
+            return;
+        }
+
+        loadedId = Model.Id;
+        choice = Model.Choice;
+        other = Model.Other;
+        otherText = Model.OtherText;
+        text = Model.Text;
+    }
+
+    private void SelectOption(string option)
+    {
+        choice = option;
+        other = false;
+    }
+
+    private void SelectOther() => other = true;
+
+    private void OnOtherText(ChangeEventArgs change) => otherText = change.Value?.ToString() ?? "";
+
+    private void OnText(ChangeEventArgs change) => text = change.Value?.ToString() ?? "";
+
+    private DecisionDraft Draft() => new(choice, other, otherText, text);
+
+    private Task NextDraft() => Next.InvokeAsync(Draft());
+
+    private Task DoneDraft() => Done.InvokeAsync(Draft());
+}

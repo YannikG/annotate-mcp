@@ -1,0 +1,157 @@
+<div class="frame">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/projects">Projects</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">@Model.DisplayName</span>
+    </nav>
+    <header class="page-title">
+        <div class="title-block">
+            <h1>@Model.DisplayName</h1>
+            <p class="path mono">@Model.FolderPath</p>
+            @if (Model.Archived)
+            {
+                <Badge>Archived project</Badge>
+            }
+        </div>
+        <div class="page-actions">
+            <Button data-edit OnClick="OpenEdit">Edit</Button>
+            @if (Model.Archived)
+            {
+                <Button data-restore OnClick="OpenRestore">Restore</Button>
+            }
+            else
+            {
+                <Button data-archive OnClick="OpenArchive">Archive</Button>
+            }
+            <Button Variant="ButtonVariant.Destructive" data-delete OnClick="OpenDelete">Delete</Button>
+        </div>
+    </header>
+    <section aria-label="Project plans">
+    <h2>Plans <span class="section-count">@Model.Listing.ActivePlans</span></h2>
+    <PlanTabs Listing="Model.Listing" Tab="Model.Tab" Page="Model.Page"
+        TabSelected="TabSelected" PageSelected="PageSelected" />
+    </section>
+    @if (Model.Error is not null && mode == Mode.None)
+    {
+        <p class="alert" role="alert">@Model.Error</p>
+    }
+    @if (mode == Mode.Edit)
+    {
+        <Dialog LabelledBy="edit-project-title" Close="Close">
+            <form data-edit-dialog @onsubmit="Submit" @onsubmit:preventDefault="true">
+                <h2 id="edit-project-title">Rename project</h2>
+                <label for="display-name">Display name</label>
+                <input id="display-name" value="@draft" @oninput="OnInput" />
+                @if (Model.Error is not null)
+                {
+                    <p class="alert" role="alert">@Model.Error</p>
+                }
+                <div class="dialog-actions">
+                    <Button data-cancel OnClick="Close">Cancel</Button>
+                    <Button Variant="ButtonVariant.Primary" Type="submit">Save</Button>
+                </div>
+            </form>
+        </Dialog>
+    }
+    else if (mode == Mode.Archive)
+    {
+        <ConfirmDialog Title="Archive this project?" Body="You can restore it later. It leaves the active project list until then."
+            ConfirmLabel="Archive" Error="@Model.Error" Confirm="ConfirmArchive" Cancel="Close" />
+    }
+    else if (mode == Mode.Restore)
+    {
+        <ConfirmDialog Title="Restore this project?" Body="It returns to the project list."
+            ConfirmLabel="Restore" Error="@Model.Error" Confirm="ConfirmRestore" Cancel="Close" />
+    }
+    else if (mode == Mode.Delete)
+    {
+        <ConfirmDialog Title="Delete this project permanently?" Body="This cannot be undone. The plans and reviews in this project are removed."
+            ConfirmLabel="Delete permanently" ConfirmVariant="ButtonVariant.Destructive" Error="@Model.Error" Confirm="ConfirmDelete" Cancel="Close" />
+    }
+</div>
+
+@code {
+    private enum Mode
+    {
+        None,
+        Edit,
+        Archive,
+        Restore,
+        Delete,
+    }
+
+    [Parameter, EditorRequired]
+    public ProjectViewModel Model { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback<string> Rename { get; set; }
+
+    [Parameter]
+    public EventCallback Archive { get; set; }
+
+    [Parameter]
+    public EventCallback Restore { get; set; }
+
+    [Parameter]
+    public EventCallback Delete { get; set; }
+
+    [Parameter]
+    public EventCallback<ProjectPlanTab> TabSelected { get; set; }
+
+    [Parameter]
+    public EventCallback<int> PageSelected { get; set; }
+
+    private string draft = "";
+
+    private string? syncedName;
+
+    private bool? wasArchived;
+
+    private Mode mode;
+
+    protected override void OnParametersSet()
+    {
+        if (wasArchived == true && !Model.Archived && mode == Mode.Restore)
+        {
+            mode = Mode.None;
+        }
+
+        wasArchived = Model.Archived;
+
+        if (syncedName == Model.DisplayName)
+        {
+            return;
+        }
+
+        syncedName = Model.DisplayName;
+        draft = Model.DisplayName;
+        if (mode == Mode.Edit)
+        {
+            mode = Mode.None;
+        }
+    }
+
+    private void OpenEdit()
+    {
+        draft = Model.DisplayName;
+        mode = Mode.Edit;
+    }
+
+    private void OpenArchive() => mode = Mode.Archive;
+
+    private void OpenRestore() => mode = Mode.Restore;
+
+    private void OpenDelete() => mode = Mode.Delete;
+
+    private void Close() => mode = Mode.None;
+
+    private void OnInput(ChangeEventArgs change) => draft = change.Value?.ToString() ?? "";
+
+    private Task Submit() => Rename.InvokeAsync(draft);
+
+    private Task ConfirmArchive() => Archive.InvokeAsync();
+
+    private Task ConfirmRestore() => Restore.InvokeAsync();
+
+    private Task ConfirmDelete() => Delete.InvokeAsync();
+}

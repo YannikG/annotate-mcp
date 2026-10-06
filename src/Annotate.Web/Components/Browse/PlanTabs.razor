@@ -1,0 +1,116 @@
+<div class="review-tabs" role="tablist" aria-label="Review status">
+    @for (int index = 0; index < Tabs.Length; index++)
+    {
+        int tab = index;
+        TabInfo display = Tabs[tab];
+        <button type="button" class="tab" role="tab" id="@(display.Key)-tab" data-tab="@display.Key"
+                aria-selected="@(Active == tab ? "true" : "false")" aria-controls="review-list"
+                tabindex="@(Active == tab ? 0 : -1)" @ref="tabButtons[tab]"
+                @onclick="() => Select(display.Kind)" @onkeydown="e => OnTabKey(e, tab)">
+            <span class="tab-label">@display.Label</span>
+            <span class="tab-count">@Count(display.Kind)</span>
+        </button>
+    }
+</div>
+<section id="review-list" role="tabpanel" aria-labelledby="@(Tabs[Active].Key)-tab" tabindex="0">
+    @if (Listing.Rows.Count == 0)
+    {
+        if (IsEmptyProject)
+        {
+            <EmptyState Title="This project has no plans." />
+        }
+        else
+        {
+            <EmptyState Title="@Tabs[Active].Empty" Hint="@Tabs[Active].Hint" />
+        }
+    }
+    else
+    {
+        <ul class="stack plan-list" data-archived-plans="@(Tab == ProjectPlanTab.Archived ? "true" : null)">
+            @foreach (ProjectPlanRow row in Listing.Rows)
+            {
+                <PlanListItem @key="row.PlanId" PlanId="@row.PlanId" Title="@row.Title"
+                    RevisionNumber="@row.RevisionNumber" UpdatedAt="@row.UpdatedAt"
+                    Status="@StatusTone.Label(row.Status)" StatusKey="@StatusTone.Of(row.Status)" />
+            }
+        </ul>
+    }
+    @if (ShowPager)
+    {
+        <nav class="pager" aria-label="Pagination">
+            <Button data-page-prev Disabled="@(Page <= 1)" OnClick="Previous">Previous</Button>
+            <span class="pager-status" data-page-status>Page @Page of @LastPage</span>
+            <Button data-page-next Disabled="@(Page >= LastPage)" OnClick="Next">Next</Button>
+        </nav>
+    }
+</section>
+
+@code {
+    private static readonly TabInfo[] Tabs =
+    [
+        new(ProjectPlanTab.Pending, StatusTone.Pending, "Pending reviews", "No reviews are waiting.", "New plans will appear here when they are ready for review."),
+        new(ProjectPlanTab.Changes, StatusTone.Changes, "Changes requested", "No changes requested.", "Plans that need another pass will appear here."),
+        new(ProjectPlanTab.Approved, StatusTone.Approved, "Recently approved", "No approved reviews yet.", "Approved plans will appear here."),
+        new(ProjectPlanTab.Archived, "archived", "Archived", "No archived plans.", "Plans you archive will appear here."),
+    ];
+
+    [Parameter, EditorRequired] public ProjectPlanListing Listing { get; set; } = ProjectPlanListing.Empty;
+    [Parameter] public ProjectPlanTab Tab { get; set; }
+    [Parameter] public int Page { get; set; } = 1;
+    [Parameter] public EventCallback<ProjectPlanTab> TabSelected { get; set; }
+    [Parameter] public EventCallback<int> PageSelected { get; set; }
+
+    private readonly ElementReference[] tabButtons = new ElementReference[4];
+
+    private int Active => Tab switch
+    {
+        ProjectPlanTab.Changes => 1,
+        ProjectPlanTab.Approved => 2,
+        ProjectPlanTab.Archived => 3,
+        _ => 0,
+    };
+
+    private bool IsEmptyProject =>
+        Tab == ProjectPlanTab.Pending && Listing.ActivePlans == 0 && Listing.Archived == 0;
+
+    private int Total => Count(Tab);
+
+    private bool ShowPager => Total > IProjectPlanPages.PageSize;
+
+    private int LastPage => Math.Max(1, (Total + IProjectPlanPages.PageSize - 1) / IProjectPlanPages.PageSize);
+
+    private int Count(ProjectPlanTab tab) => tab switch
+    {
+        ProjectPlanTab.Pending => Listing.Pending,
+        ProjectPlanTab.Changes => Listing.Changes,
+        ProjectPlanTab.Approved => Listing.Approved,
+        _ => Listing.Archived,
+    };
+
+    private Task Select(ProjectPlanTab tab) => TabSelected.InvokeAsync(tab);
+
+    private Task Previous() => PageSelected.InvokeAsync(Page - 1);
+
+    private Task Next() => PageSelected.InvokeAsync(Page + 1);
+
+    private async Task OnTabKey(KeyboardEventArgs e, int index)
+    {
+        int next = e.Key switch
+        {
+            "ArrowRight" => (index + 1) % Tabs.Length,
+            "ArrowLeft" => (index + Tabs.Length - 1) % Tabs.Length,
+            "Home" => 0,
+            "End" => Tabs.Length - 1,
+            _ => -1,
+        };
+        if (next < 0)
+        {
+            return;
+        }
+
+        await Select(Tabs[next].Kind);
+        await tabButtons[next].FocusAsync();
+    }
+
+    private sealed record TabInfo(ProjectPlanTab Kind, string Key, string Label, string Empty, string Hint);
+}

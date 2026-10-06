@@ -1,0 +1,64 @@
+@inject NavigationManager Navigation
+
+@if (headings.Count > 0)
+{
+    <SidePanel PanelKey="contents" Title="Contents" Side="left" ShowTrigger="ShowTrigger">
+    <nav class="contents" data-contents aria-label="Contents">
+        <ul>
+            @foreach (HeadingLink heading in headings)
+            {
+                <li class="l@(heading.Level)">
+                    <a href="@Anchor(heading.Ordinal)" data-enhance-nav="false">@heading.Text</a>
+                </li>
+            }
+        </ul>
+    </nav>
+    </SidePanel>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public string Markdown { get; set; } = "";
+
+    [Parameter] public bool ShowTrigger { get; set; } = true;
+
+    private List<HeadingLink> headings = [];
+
+    protected override void OnParametersSet()
+    {
+        headings = Read(Markdown);
+    }
+
+    private static List<HeadingLink> Read(string markdown)
+    {
+        if (PlanMarkdown.Parse(markdown) is not ParseOutcome.Ok ok)
+        {
+            return [];
+        }
+
+        List<HeadingLink> found = [];
+        for (int index = 0; index < ok.Document.Blocks.Count; index++)
+        {
+            if (ok.Document.Blocks[index] is HeadingBlock heading)
+            {
+                found.Add(new HeadingLink(index, heading.Level, heading.Text));
+            }
+        }
+
+        return found;
+    }
+
+    private string Anchor(int ordinal)
+    {
+        string relative = Navigation.ToBaseRelativePath(Navigation.Uri);
+        int hash = relative.IndexOf('#', StringComparison.Ordinal);
+        if (hash >= 0)
+        {
+            relative = relative[..hash];
+        }
+
+        return $"/{relative}#b-{ordinal}";
+    }
+
+    private sealed record HeadingLink(int Ordinal, int Level, string Text);
+}

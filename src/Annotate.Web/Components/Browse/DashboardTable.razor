@@ -1,0 +1,31 @@
+<table class="dashboard-table">
+    <thead>
+        <tr>
+            <th>Project</th><th>Plans</th><th>Pending</th><th>Approval rate</th><th>Revisions to approval</th><th>Last activity</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (ProjectStat project in Rows)
+        {
+            <tr data-project-row data-archived="@(project.Archived ? "true" : "false")">
+                <td>
+                    <a href="/projects/@project.ProjectId">@project.Name</a>
+                    @if (project.Archived)
+                    {
+                        <Badge Tone="neutral">Archived</Badge>
+                    }
+                </td>
+                <td>@project.Plans</td>
+                <td>@project.Pending</td>
+                <td>@project.Approval</td>
+                <td>@project.Rounds</td>
+                <td>@project.LastActivity</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<ProjectStat> Rows { get; set; } = [];
+}

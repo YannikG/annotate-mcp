@@ -1,0 +1,5 @@
+id: no-important
+valid:
+  - ".card { margin: 0; }"
+invalid:
+  - ".card { margin: 0 !important; }"

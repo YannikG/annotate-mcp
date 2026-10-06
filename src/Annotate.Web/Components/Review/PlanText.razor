@@ -1,0 +1,27 @@
+<div data-plan>
+    @if (parsed is ParseOutcome.Ok ok)
+    {
+        <CascadingValue Value="ok.Document.Decisions">
+        @for (int index = 0; index < ok.Document.Blocks.Count; index++)
+        {
+            <BlockView Source="@Markdown" Block="ok.Document.Blocks[index]" Ordinal="index" />
+        }
+        </CascadingValue>
+    }
+    else
+    {
+        <pre>@Markdown</pre>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Markdown { get; set; } = "";
+
+    private ParseOutcome? parsed;
+
+    protected override void OnParametersSet()
+    {
+        parsed = PlanMarkdown.Parse(Markdown);
+    }
+}

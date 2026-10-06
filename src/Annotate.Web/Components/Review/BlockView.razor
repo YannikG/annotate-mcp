@@ -1,0 +1,127 @@
+@if (Block is HeadingBlock heading)
+{
+    @if (heading.Level <= 1)
+    {
+        <h1 id="b-@Ordinal"><InlineView Source="@Source" Inlines="heading.Inlines" Ordinal="Ordinal" /></h1>
+    }
+    else if (heading.Level == 2)
+    {
+        <h2 id="b-@Ordinal"><InlineView Source="@Source" Inlines="heading.Inlines" Ordinal="Ordinal" /></h2>
+    }
+    else if (heading.Level == 3)
+    {
+        <h3 id="b-@Ordinal"><InlineView Source="@Source" Inlines="heading.Inlines" Ordinal="Ordinal" /></h3>
+    }
+    else if (heading.Level == 4)
+    {
+        <h4 id="b-@Ordinal"><InlineView Source="@Source" Inlines="heading.Inlines" Ordinal="Ordinal" /></h4>
+    }
+    else if (heading.Level == 5)
+    {
+        <h5 id="b-@Ordinal"><InlineView Source="@Source" Inlines="heading.Inlines" Ordinal="Ordinal" /></h5>
+    }
+    else
+    {
+        <h6 id="b-@Ordinal"><InlineView Source="@Source" Inlines="heading.Inlines" Ordinal="Ordinal" /></h6>
+    }
+}
+else if (Block is ParagraphBlock paragraph)
+{
+    <p><InlineView Source="@Source" Inlines="paragraph.Inlines" Ordinal="Ordinal" /></p>
+}
+else if (Block is ListBlock list)
+{
+    @if (ListMarkers.Ordered(list.Items))
+    {
+        <ol><ListItems Source="@Source" Items="list.Items" Ordinal="Ordinal" /></ol>
+    }
+    else
+    {
+        <ul><ListItems Source="@Source" Items="list.Items" Ordinal="Ordinal" /></ul>
+    }
+}
+else if (Block is CodeBlock mermaid && mermaid.Language.Equals("mermaid", StringComparison.OrdinalIgnoreCase))
+{
+    <div class="mermaid-block" data-mermaid>
+        <div class="mermaid-canvas" data-mermaid-canvas aria-label="Mermaid diagram"></div>
+        <p class="mermaid-error" data-mermaid-error hidden></p>
+        <details class="mermaid-source">
+            <summary>Mermaid source</summary>
+            <pre><code data-block-index="@Ordinal" data-seg-start="@mermaid.Start" data-seg-end="@mermaid.End"><AnnotationText Source="@Source" Ordinal="Ordinal" Start="mermaid.Start" End="mermaid.End" /></code></pre>
+        </details>
+        <pre class="visually-hidden" data-mermaid-body>@mermaid.Body</pre>
+    </div>
+}
+else if (Block is CodeBlock diff && (diff.Language.Equals("diff", StringComparison.OrdinalIgnoreCase)
+    || diff.Language.Equals("patch", StringComparison.OrdinalIgnoreCase)))
+{
+    <DiffView Source="@Source" Fence="diff" Ordinal="Ordinal" />
+}
+else if (Block is CodeBlock decision && decision.Language.Equals("decision", StringComparison.OrdinalIgnoreCase))
+{
+    <DecisionView Source="@Source" Fence="decision" Ordinal="Ordinal" />
+}
+else if (Block is CodeBlock fence)
+{
+    <CodeView Source="@Source" Fence="fence" Ordinal="Ordinal" />
+}
+else if (Block is QuoteBlock quote)
+{
+    <blockquote>
+        @foreach (Block child in quote.Children)
+        {
+            <BlockView Source="@Source" Block="child" Ordinal="Ordinal" />
+        }
+    </blockquote>
+}
+else if (Block is TableBlock table)
+{
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                @foreach (TableCell cell in table.Header)
+                {
+                    <th><InlineView Source="@Source" Inlines="cell.Inlines" Ordinal="Ordinal" /></th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (IReadOnlyList<TableCell> row in table.Rows)
+            {
+                <tr>
+                    @foreach (TableCell cell in row)
+                    {
+                        <td><InlineView Source="@Source" Inlines="cell.Inlines" Ordinal="Ordinal" /></td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+    </div>
+}
+else if (Block is RuleBlock)
+{
+    <hr />
+}
+else if (Block is DetailsBlock details)
+{
+    <details>
+        <summary><InlineView Source="@Source" Inlines="details.Summary" Ordinal="Ordinal" /></summary>
+        @foreach (Block child in details.Children)
+        {
+            <BlockView Source="@Source" Block="child" Ordinal="Ordinal" />
+        }
+    </details>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public string Source { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public Block Block { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public int Ordinal { get; set; }
+}

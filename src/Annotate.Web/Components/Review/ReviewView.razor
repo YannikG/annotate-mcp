@@ -1,0 +1,251 @@
+<div tabindex="0" class="review-page" data-review @onkeydown="OnKey">
+    <ProjectBreadcrumb ProjectId="@Model.ProjectId" ProjectName="@Model.ProjectName" />
+    <header class="editor-heading">
+        <h1>@Model.Title</h1>
+        <Badge Tone="@StatusTone.OfLabel(Model.Status)" data-status>@Model.Status</Badge>
+    </header>
+    <EditorToolbar Markdown="@Model.Markdown">
+        <Trailing>
+            @if (Model.Prompts.Count > 0)
+            {
+                <PanelToggle PanelKey="decisions" Title="Decisions" />
+            }
+            <PanelToggle PanelKey="annotations" Title="Annotations" />
+        <div class="review-actions-control" data-actions>
+        <button type="button" class="btn review-actions-trigger" data-review-actions-trigger aria-expanded="@(actionsOpen ? "true" : "false")" aria-controls="@actionsId" @onclick="ToggleActions">Actions <span aria-hidden="true">⌄</span></button>
+        @if (actionsOpen)
+        {
+            <button type="button" class="backdrop" data-actions-dismiss aria-label="Close review actions" tabindex="-1" @onclick="CloseActions"></button>
+        }
+        <div class="nav-right @(actionsOpen ? "is-open" : null)" id="@actionsId" role="group" aria-label="Review actions">
+            <p class="countdown" hidden="@(!Model.CountdownRunning)">Submitting in <span data-countdown data-running="@(Model.CountdownRunning ? "true" : "false")">@Model.Countdown</span></p>
+            <label class="check">
+                <input type="checkbox" data-auto-close checked="@Model.AutoCloseOnSubmit" @onchange="OnAutoClose" />
+                Auto-close
+            </label>
+            <Button Variant="ButtonVariant.Destructive" data-request-changes Disabled="@(!Model.Pending)" OnClick="RequestChanges">Request changes</Button>
+            <div class="split">
+                <Button Variant="ButtonVariant.Primary" data-approve Disabled="@(!Model.CanApprove)" OnClick="Approve">Approve</Button>
+                <button type="button" class="split-toggle" aria-haspopup="menu" aria-expanded="@(menuOpen ? "true" : "false")" aria-label="Approve and Download report" disabled="@(!Model.CanApprove)" @onclick="ToggleMenu">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+                </button>
+                <button type="button" class="backdrop" hidden="@(!menuOpen)" aria-label="Close" @onclick="CloseMenu"></button>
+                <div class="split-menu" role="menu" hidden="@(!menuOpen)">
+                    <button type="button" class="split-item" role="menuitem" data-download disabled="@(!Model.CanApprove)" @onclick="ChooseDownload">Approve and Download report</button>
+                </div>
+            </div>
+        </div>
+        </div>
+        </Trailing>
+    </EditorToolbar>
+    <DocumentBoard Markdown="@Model.Markdown">
+        <Panels>
+            @if (Model.Prompts.Count > 0)
+            {
+                <SidePanel PanelKey="decisions" Title="Decisions" ShowTrigger="false">
+                    <ol class="stack" data-prompts>
+                        @foreach (PromptRow row in Model.Prompts)
+                        {
+                            <li>
+                                <button type="button" data-prompt="@row.Id" data-answered="@Answered(row.Answer)" disabled="@(!Model.Pending)" @onclick="() => Open(row.Id)">
+                                    <span data-prompt-text>@row.Prompt</span>
+                                    <span data-answer>@row.Answer</span>
+                                </button>
+                            </li>
+                        }
+                    </ol>
+                </SidePanel>
+            }
+            <SidePanel PanelKey="annotations" Title="Annotations" ShowTrigger="false">
+                <AnnotationCards Annotations="Model.Annotations" />
+            </SidePanel>
+        </Panels>
+        <ChildContent>
+    <div class="review-document">
+    <header class="review-header">
+        <RevisionContext StoryUrl="@Model.StoryUrl" AcceptanceCriteria="@Model.AcceptanceCriteria" Attribution="@Model.Attribution" />
+    </header>
+    @if (!string.IsNullOrEmpty(Model.Notice))
+    {
+        <p class="notice" data-notice role="status">@Model.Notice</p>
+    }
+    @if (Model.DraftSaveStatus is not null)
+    {
+        <p class="notice" data-draft-status role="status">@Model.DraftSaveStatus</p>
+        @if (Model.Pending && Model.DraftSaveStatus.StartsWith("Could not save", StringComparison.Ordinal))
+        {
+            <Button data-retry-draft OnClick="RetryDraft">Retry saving draft</Button>
+        }
+    }
+    <div class="document" @onmouseup="Select">
+            @if (Model.Diff is null)
+            {
+                <CascadingValue Value="DecisionContext">
+                    <CascadingValue Name="Annotations" Value="Model.Marks">
+                        <PlanText Markdown="@Model.Markdown" />
+                    </CascadingValue>
+                </CascadingValue>
+            }
+            else
+            {
+                <section class="diff" data-diff>
+                    <h2>@Model.Diff.Heading</h2>
+                    <ol>
+                        @foreach (DiffRow row in Model.Diff.Rows)
+                        {
+                            <li data-line="@row.Kind">@row.Text</li>
+                        }
+                    </ol>
+                </section>
+            }
+        </div>
+    </div>
+        </ChildContent>
+    </DocumentBoard>
+    @if (Model.ReportFailure is not null)
+    {
+        <div class="alert" role="alert">
+            <p data-report-failure>Report was not downloaded</p>
+            <p data-report-error>@Model.ReportFailure</p>
+            <div class="alert-actions">
+                <Button data-approve-without-download Disabled="@(!Model.CanApprove)" OnClick="Approve">Approve without download</Button>
+                <Button Variant="ButtonVariant.Quiet" data-dismiss-report OnClick="DismissReport">Dismiss</Button>
+            </div>
+        </div>
+    }
+    <AnnotateToolbar Box="@Model.Toolbar" Annotate="Annotate" />
+    @if (Model.NotePrompt is not null)
+    {
+        <form class="annotate-popover" data-note-dialog role="dialog" aria-modal="true" @attributes="Anchor.Attributes(Model.NotePrompt.Box is null ? null : Anchor.Below(Model.NotePrompt.Box))" @onsubmit="SubmitNote" @onsubmit:preventDefault="true" @onkeydown:stopPropagation="true">
+            <h2>@Model.NotePrompt.Title</h2>
+            <p data-note-quote>@Model.NotePrompt.Quote</p>
+            <textarea data-note aria-label="@Model.NotePrompt.Title" @oninput="OnNote">@noteDraft</textarea>
+            <div class="dialog-actions">
+                <Button data-cancel OnClick="CancelNote">Cancel</Button>
+                <Button Variant="ButtonVariant.Primary" Type="submit" data-save-note>Save</Button>
+            </div>
+        </form>
+    }
+    @if (Model.Dialog is not null)
+    {
+        <DecisionDialog Model="Model.Dialog" Close="CloseDialog" Previous="PreviousPrompt" Next="NextPrompt" Done="FinishPrompt" />
+    }
+</div>
+
+@code {
+    private ReviewDecisionContext DecisionContext => new(Model.Prompts, Model.Pending, OpenPrompt);
+
+    [Parameter, EditorRequired]
+    public ReviewViewModel Model { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback Approve { get; set; }
+
+    [Parameter]
+    public EventCallback Download { get; set; }
+
+    [Parameter]
+    public EventCallback DismissReport { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> AutoCloseChanged { get; set; }
+
+    [Parameter]
+    public EventCallback RequestChanges { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OpenPrompt { get; set; }
+
+    [Parameter]
+    public EventCallback CloseDialog { get; set; }
+
+    [Parameter]
+    public EventCallback PreviousPrompt { get; set; }
+
+    [Parameter]
+    public EventCallback<DecisionDraft> NextPrompt { get; set; }
+
+    [Parameter]
+    public EventCallback<DecisionDraft> FinishPrompt { get; set; }
+
+    [Parameter]
+    public EventCallback<string> SaveNote { get; set; }
+
+    [Parameter]
+    public EventCallback<string> EditNote { get; set; }
+
+    [Parameter]
+    public EventCallback RetryDraft { get; set; }
+
+    [Parameter]
+    public EventCallback CancelNote { get; set; }
+
+    [Parameter]
+    public EventCallback Select { get; set; }
+
+    [Parameter]
+    public EventCallback<string> Annotate { get; set; }
+
+    [Parameter]
+    public EventCallback<ReviewKey> Key { get; set; }
+
+    private string noteDraft = "";
+
+    private string? noteQuote;
+
+    private bool menuOpen;
+
+    private bool actionsOpen;
+
+    private readonly string actionsId = "review-actions-" + Guid.NewGuid().ToString("N");
+
+    private void ToggleActions() => actionsOpen = !actionsOpen;
+
+    private void CloseActions()
+    {
+        actionsOpen = false;
+        menuOpen = false;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (!Model.Pending) CloseActions();
+        if (Model.NotePrompt?.Quote != noteQuote)
+        {
+            noteQuote = Model.NotePrompt?.Quote;
+            noteDraft = "";
+        }
+    }
+
+    private void ToggleMenu() => menuOpen = !menuOpen;
+
+    private void CloseMenu() => menuOpen = false;
+
+    private Task ChooseDownload()
+    {
+        menuOpen = false;
+        return Download.InvokeAsync();
+    }
+
+    private async Task OnNote(ChangeEventArgs change)
+    {
+        noteDraft = change.Value?.ToString() ?? "";
+        await EditNote.InvokeAsync(noteDraft);
+    }
+
+    private Task SubmitNote() => SaveNote.InvokeAsync(noteDraft);
+
+    private Task OnKey(KeyboardEventArgs args)
+    {
+        if (args.Key == "Escape") CloseActions();
+        return Key.InvokeAsync(new ReviewKey(args.Key, ""));
+    }
+
+    private Task Open(string id) => OpenPrompt.InvokeAsync(id);
+
+    private Task OnAutoClose(ChangeEventArgs change) =>
+        AutoCloseChanged.InvokeAsync(change.Value is bool value && value);
+
+    private static string Answered(string answer) =>
+        answer == "(unanswered)" ? "false" : "true";
+}

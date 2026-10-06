@@ -1,0 +1,16 @@
+id: no-raw-z-index
+language: Css
+severity: error
+message: "z-index outside tokens.css must be var(--z-*)."
+files:
+  - src/Annotate.Web/**/*.css
+ignores:
+  - "**/bin/**"
+  - "**/obj/**"
+  - "**/tokens.css"
+rule:
+  all:
+    - kind: declaration
+    - regex: "^z-index\\s*:"
+  not:
+    regex: "^z-index\\s*:\\s*var\\(--z-"

@@ -1,0 +1,5 @@
+id: no-pragma-warning-disable
+valid:
+  - "class Sample { }"
+invalid:
+  - "#pragma warning disable CA1000"

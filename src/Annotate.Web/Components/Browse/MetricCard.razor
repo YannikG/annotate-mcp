@@ -1,0 +1,23 @@
+<article class="metric-card" data-metric="@Id">
+    <h2>@Label</h2>
+    @if (Metric.Href is null)
+    {
+        <p class="metric-value" data-metric-value>@Metric.Value</p>
+    }
+    else
+    {
+        <a class="metric-value" data-metric-value href="@Metric.Href">@Metric.Value</a>
+    }
+    <p class="metric-detail" data-metric-detail>@Metric.Detail</p>
+</article>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public Metric Metric { get; set; } = default!;
+}

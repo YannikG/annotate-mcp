@@ -1,0 +1,12 @@
+<div class="empty-state">
+    <h2>@Title</h2>
+    @if (!string.IsNullOrEmpty(Hint))
+    {
+        <p>@Hint</p>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string? Hint { get; set; }
+}

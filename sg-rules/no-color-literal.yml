@@ -1,0 +1,13 @@
+id: no-color-literal
+language: Css
+severity: error
+message: "Colour literals belong in tokens.css."
+files:
+  - src/Annotate.Web/**/*.css
+ignores:
+  - "**/bin/**"
+  - "**/obj/**"
+  - "**/tokens.css"
+rule:
+  kind: stylesheet
+  regex: "#[0-9a-fA-F]{3,8}\\b|rgba?\\s*\\(|hsla?\\s*\\("

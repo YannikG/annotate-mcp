@@ -1,0 +1,5 @@
+id: no-bare-element-selector
+valid:
+  - ".button { color: var(--ink); }"
+invalid:
+  - "button.primary { color: var(--ink); }"
