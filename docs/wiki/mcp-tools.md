@@ -1,6 +1,6 @@
 # MCP tools
 
-Your agent talks to Annotate through a small set of MCP tools. You mostly see the results: a new revision, a review URL in chat, or feedback after you request changes. This page is what those tools mean when you are reading the product, not a rule sheet for the agent.
+Your agent talks to Annotate through a small set of MCP tools. You mostly see the results: a new revision, a review URL in chat, or feedback after you request changes.
 
 | Tool | What you notice |
 | --- | --- |
