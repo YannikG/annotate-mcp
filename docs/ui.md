@@ -38,7 +38,7 @@ Stylesheets load in this order from `App.razor`. Each has one job.
 | `panels.css` | Side panels, contents nav, flyouts, the 1100px desktop rules |
 | `document.css` | Rendered plan prose: headings, code blocks, mermaid, diff blocks, decision cards |
 | `review.css` | Annotation marks in text, annotation cards, the selection popup, the diff list |
-| `copy.css` | Desktop hover controls that copy a plan id, a review id, or a heading's block key, and the toast |
+| `copy.css` | Desktop hover controls that copy a plan id, a review id, or a heading's review id and block key, and the toast |
 
 Scoped `.razor.css` files remain for Blazor infrastructure only (`MainLayout`, `ReconnectModal`). They follow the same rules.
 
@@ -110,9 +110,9 @@ Reports are standalone HTML and cannot link `tokens.css`, so `PlanReportStyles` 
 | Project edit, archive, delete | The project page header |
 | Theme switch | The shared navigation |
 | Copy a plan or review id | The editor toolbar copy menu |
-| Copy a heading's block key | The copy icon at the start of that heading |
+| Copy a heading's review id and block key | The copy icon at the start of that heading |
 
-Keyboard shortcuts (`d`, `r`, `s`, `c`) trigger the same popup commands; they are not separate UI.
+The heading copy icon shows the tooltip “Copies the review id and this block id” before the click. Keyboard shortcuts (`d`, `r`, `s`, `c`) trigger the same popup commands; they are not separate UI.
 
 ## Layout
 
