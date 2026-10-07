@@ -8,6 +8,10 @@ public interface IPlanHost
 
     Task<string> ArchiveAsync(string planId, CancellationToken cancellationToken);
 
+    Task<string> ListBlocksAsync(string revisionId, CancellationToken cancellationToken);
+
+    Task<string> ReadBlockAsync(string revisionId, string blockId, CancellationToken cancellationToken);
+
     string Guide();
 }
 

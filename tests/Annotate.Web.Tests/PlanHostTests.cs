@@ -301,6 +301,49 @@ public sealed class PlanHostTests
         Assert.Contains("\"agent\"", postedBody, StringComparison.Ordinal);
         Assert.Contains("\"model\"", postedBody, StringComparison.Ordinal);
         Assert.Contains("\"waitSeconds\"", postedBody, StringComparison.Ordinal);
+        Assert.Contains("\"name\":\"list_revision_blocks\"", postedBody, StringComparison.Ordinal);
+        Assert.Contains("\"name\":\"read_revision_block\"", postedBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task RevisionBlocksListStoredKeysAndReadOneMarkdown()
+    {
+        await using AnnotateApp app = new();
+        IPlanHost host = app.Services.GetRequiredService<IPlanHost>();
+        const string Plan = "# Storage\n\nKeep the file local.\n";
+        string submitted = await host.SubmitAsync(
+            new PlanSubmission(Plan, null, null, null, null, null, null, "Cursor", "claude-opus-4"),
+            "localhost",
+            CancellationToken.None);
+        string planId = Value(submitted, "Plan ID: ");
+        PlanDetail stored = Assert.IsType<PlanDetail>(
+            await app.Services.GetRequiredService<IPlans>().PlanAsync(new PlanId(planId), CancellationToken.None));
+        string revisionId = Assert.Single(stored.Revisions).RevisionId.Value;
+        RevisionDetail revision = Assert.IsType<RevisionDetail>(
+            await app.Services.GetRequiredService<IPlans>().RevisionAsync(
+                new Annotate.Plans.Application.RevisionId(revisionId), CancellationToken.None));
+        Assert.Equal(2, revision.Blocks.Count);
+
+        string list = await host.ListBlocksAsync(revisionId, CancellationToken.None);
+        Assert.Equal(
+            $"""
+            blockId: {revision.Blocks[0].Key}
+            kind: Heading
+            # Storage
+
+            blockId: {revision.Blocks[1].Key}
+            kind: Paragraph
+            Keep the file local.
+            """,
+            list);
+        Assert.Equal(
+            "Keep the file local.\n",
+            await host.ReadBlockAsync(revisionId, revision.Blocks[1].Key, CancellationToken.None));
+        Assert.Equal("Error: Revision was not found.", await host.ListBlocksAsync("  ", CancellationToken.None));
+        Assert.Equal("Error: Revision was not found.", await host.ListBlocksAsync("missing", CancellationToken.None));
+        Assert.Equal("Error: Revision was not found.", await host.ReadBlockAsync("missing", revision.Blocks[0].Key, CancellationToken.None));
+        Assert.Equal("Error: Block was not found.", await host.ReadBlockAsync(revisionId, "  ", CancellationToken.None));
+        Assert.Equal("Error: Block was not found.", await host.ReadBlockAsync(revisionId, "missing-block", CancellationToken.None));
     }
 
     [Fact]

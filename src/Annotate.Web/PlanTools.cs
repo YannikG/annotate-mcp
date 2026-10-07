@@ -58,4 +58,19 @@ internal sealed class PlanTools
 
     [McpServerTool(Name = "get_plan_markdown_guide"), Description("Returns the Markdown the page can render. Call before a plan that uses diagrams, tables, or decision fences.")]
     public static string GetPlanMarkdownGuide(IPlanHost host) => host.Guide();
+
+    [McpServerTool(Name = "list_revision_blocks"), Description("Lists the stored blocks of one revision. Each entry is the stable block key, the block kind, and the first line of that block.")]
+    public static Task<string> ListRevisionBlocks(
+        IPlanHost host,
+        [Description("Revision ID.")] string revisionId,
+        CancellationToken cancellationToken = default) =>
+        host.ListBlocksAsync(revisionId, cancellationToken);
+
+    [McpServerTool(Name = "read_revision_block"), Description("Returns the markdown of one stored block. Pass the revision id and the block id from list_revision_blocks.")]
+    public static Task<string> ReadRevisionBlock(
+        IPlanHost host,
+        [Description("Revision ID.")] string revisionId,
+        [Description("Block ID. The stable block key stored on that revision.")] string blockId,
+        CancellationToken cancellationToken = default) =>
+        host.ReadBlockAsync(revisionId, blockId, cancellationToken);
 }

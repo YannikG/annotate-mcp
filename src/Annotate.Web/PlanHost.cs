@@ -124,7 +124,57 @@ internal sealed class PlanHost(
         };
     }
 
+    public async Task<string> ListBlocksAsync(string revisionId, CancellationToken cancellationToken)
+    {
+        RevisionDetail? revision = await Revision(revisionId, cancellationToken);
+        return revision is null
+            ? Error(RevisionWasNotFound)
+            : string.Join("\n\n", revision.Blocks.Select(block => Describe(revision.Markdown, block)));
+    }
+
+    public async Task<string> ReadBlockAsync(string revisionId, string blockId, CancellationToken cancellationToken)
+    {
+        RevisionDetail? revision = await Revision(revisionId, cancellationToken);
+        if (revision is null)
+        {
+            return Error(RevisionWasNotFound);
+        }
+
+        RevisionBlock? block = string.IsNullOrWhiteSpace(blockId)
+            ? null
+            : revision.Blocks.FirstOrDefault(item => item.Key.Equals(blockId.Trim(), StringComparison.Ordinal));
+        return block is null ? Error(BlockWasNotFound) : Slice(revision.Markdown, block.Start, block.End);
+    }
+
     public string Guide() => PlanMarkdown.Guide;
+
+    private async Task<RevisionDetail?> Revision(string revisionId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(revisionId))
+        {
+            return null;
+        }
+
+        return await plans.RevisionAsync(new Annotate.Plans.Application.RevisionId(revisionId.Trim()), cancellationToken);
+    }
+
+    private static string Describe(string markdown, RevisionBlock block)
+    {
+        string slice = Slice(markdown, block.Start, block.End);
+        int newline = slice.IndexOf('\n');
+        string line = (newline < 0 ? slice : slice[..newline]).Trim();
+        return $"blockId: {block.Key}\nkind: {block.Kind}\n{line}";
+    }
+
+    private static string Slice(string markdown, int start, int end)
+    {
+        if ((uint)start > (uint)markdown.Length || end < start || end > markdown.Length)
+        {
+            return "";
+        }
+
+        return markdown[start..end];
+    }
 
     private static void OpenReview(
         IConfiguration configuration,
@@ -221,6 +271,10 @@ internal sealed class PlanHost(
 
     private static string Unknown(string reviewId) =>
         $"Error: unknown or expired reviewId \"{reviewId}\". Submit the plan again with annotate_plan.";
+
+    private const string RevisionWasNotFound = "Revision was not found.";
+
+    private const string BlockWasNotFound = "Block was not found.";
 
     private static string Error(string message) =>
         message.StartsWith("Error: ", StringComparison.Ordinal) ? message : "Error: " + message;

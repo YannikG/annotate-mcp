@@ -68,6 +68,8 @@ A block key is reused when the content hash and section path are the same. Other
 
 `IReviews`: `OpenAsync`, `FindAsync`, `ForRevisionAsync`, `PendingAsync`, `ListAsync`, `WaitAsync`, `ApproveAsync`, `RequestChangesAsync`, `SaveAnnotationsAsync`, `SaveAnswerAsync`, `RemoveRevisionsAsync`.
 
+`list_revision_blocks` lists the stored blocks of one revision, separated by a blank line. Each entry is `blockId` (the stable block key), `kind`, and the first line of that block's markdown, trimmed. `read_revision_block` takes a revision id and a block id and returns that block's markdown. A missing revision returns `Error: Revision was not found.` A review id is not a revision id, so passing one returns that same error. A block id that is not on that revision returns `Error: Block was not found.`
+
 ## Routes
 
 `/`, `/projects`, `/projects/{id}`, `/plans/{id}`, `/plans/{id}/revisions/{revisionId}`, `/revisions/{id}`, `/review/{id}`.
