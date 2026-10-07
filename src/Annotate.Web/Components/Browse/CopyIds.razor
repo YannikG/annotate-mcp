@@ -4,14 +4,14 @@
 @if (Visible)
 {
     <div class="copy-ids @(dismissed ? "is-dismissed" : null)" data-copy-ids @onmouseleave="OpenAgain">
-        <Button class="btn-icon" aria-label="Copy ids" tabindex="-1">
+        <Button class="btn-icon" data-copy-trigger aria-label="Copy ids" aria-haspopup="menu" tabindex="-1">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg>
         </Button>
-        <div class="copy-menu" role="group" aria-label="Copy ids">
-            <Button data-copy-plan tabindex="-1" OnClick="CopyPlan">Copy plan ID</Button>
+        <div class="split-menu" role="menu" aria-label="Copy ids">
+            <button type="button" class="split-item" role="menuitem" data-copy-plan tabindex="-1" @onclick="CopyPlan">Copy plan ID</button>
             @if (!string.IsNullOrEmpty(ReviewId))
             {
-                <Button data-copy-review tabindex="-1" OnClick="CopyReview">Copy review ID</Button>
+                <button type="button" class="split-item" role="menuitem" data-copy-review tabindex="-1" @onclick="CopyReview">Copy review ID</button>
             }
         </div>
     </div>

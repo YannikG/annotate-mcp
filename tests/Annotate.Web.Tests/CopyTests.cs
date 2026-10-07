@@ -82,6 +82,24 @@ public sealed class CopyTests
     }
 
     [Fact]
+    public void ToolbarMenuUsesTheSharedDropdown()
+    {
+        using BunitContext context = Host().context;
+        IRenderedComponent<CopyIds> menu = context.Render<CopyIds>(parameters => parameters
+            .Add(component => component.PlanId, "plan-1")
+            .Add(component => component.ReviewId, "rev-1"));
+
+        IElement list = menu.Find(".split-menu");
+        Assert.Equal("menu", list.GetAttribute("role"));
+        Assert.Equal("menu", menu.Find("[data-copy-trigger]").GetAttribute("aria-haspopup"));
+        foreach (IElement item in list.QuerySelectorAll("[data-copy-plan], [data-copy-review]"))
+        {
+            Assert.Equal("split-item", item.ClassName);
+            Assert.Equal("menuitem", item.GetAttribute("role"));
+        }
+    }
+
+    [Fact]
     public void ToolbarOmitsReviewWhenTheRevisionHasNone()
     {
         using BunitContext context = Host().context;

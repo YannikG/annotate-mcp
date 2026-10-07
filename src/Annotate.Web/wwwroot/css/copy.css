@@ -30,28 +30,21 @@
         display: inline-block;
     }
 
-    .copy-menu {
-        position: absolute;
-        top: calc(100% + var(--space-1));
-        right: 0;
-        z-index: var(--z-flyout);
+    .copy-ids .split-menu {
         display: none;
-        gap: var(--space-1);
-        min-width: 12rem;
-        padding: var(--space-1);
-        border: 1px solid var(--line);
-        border-radius: var(--radius-md);
-        background: var(--sheet);
-        box-shadow: var(--shadow-md);
     }
 
-    .copy-ids:hover:not(.is-dismissed) .copy-menu {
-        display: grid;
+    .copy-ids:hover:not(.is-dismissed) .split-menu {
+        display: block;
     }
 
-    .copy-menu .btn {
-        justify-content: flex-start;
-        width: 100%;
+    .copy-ids .split-menu::before {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: 100%;
+        left: 0;
+        height: var(--space-2);
     }
 
     .copy-heading {
