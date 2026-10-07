@@ -1,0 +1,41 @@
+@if (Level <= 1)
+{
+    <h1 class="copy-heading" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h1>
+}
+else if (Level == 2)
+{
+    <h2 class="copy-heading" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h2>
+}
+else if (Level == 3)
+{
+    <h3 class="copy-heading" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h3>
+}
+else if (Level == 4)
+{
+    <h4 class="copy-heading" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h4>
+}
+else if (Level == 5)
+{
+    <h5 class="copy-heading" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h5>
+}
+else
+{
+    <h6 class="copy-heading" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h6>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public int Level { get; set; }
+
+    [Parameter, EditorRequired]
+    public int Ordinal { get; set; }
+
+    [Parameter]
+    public string? ReviewId { get; set; }
+
+    [Parameter]
+    public string? BlockKey { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

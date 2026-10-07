@@ -28,7 +28,10 @@ public sealed record ReviewViewModel(
     Annotation? ActiveNote = null,
     Attribution? Attribution = null,
     string? ProjectId = null,
-    string? ProjectName = null)
+    string? ProjectName = null,
+    string? PlanId = null,
+    string? ReviewId = null,
+    IReadOnlyList<string>? BlockKeys = null)
 {
     public IReadOnlyList<Annotation> Marks => ActiveNote is null ? Annotations : [.. Annotations, ActiveNote];
 }

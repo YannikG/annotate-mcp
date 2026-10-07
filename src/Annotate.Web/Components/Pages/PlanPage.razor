@@ -1,4 +1,5 @@
 @page "/plans/{Id}"
+@page "/plans/{Id}/revisions/{RevisionId}"
 @inject IPlans Plans
 @inject IReviews Reviews
 @inject IReportScript Report
@@ -21,6 +22,9 @@ else if (model is not null)
 @code {
     [Parameter]
     public string Id { get; set; } = "";
+
+    [Parameter]
+    public string? RevisionId { get; set; }
 
     private PlanViewModel? model;
 
@@ -58,7 +62,15 @@ else if (model is not null)
                 revision.Attribution?.Model));
         }
 
-        string? selectedId = revisions.Count == 0 ? null : revisions[^1].RevisionId;
+        string? newestId = revisions.Count == 0 ? null : revisions[^1].RevisionId;
+        if (!string.IsNullOrEmpty(RevisionId) && revisions.All(revision => revision.RevisionId != RevisionId))
+        {
+            model = null;
+            missing = true;
+            return;
+        }
+
+        string? selectedId = string.IsNullOrEmpty(RevisionId) ? newestId : RevisionId;
         ProjectSummary? project = await Plans.ProjectAsync(plan.ProjectId, CancellationToken.None);
         model = new PlanViewModel(plan.Title, revisions, selectedId, await Body(selectedId),
             project is null ? null : new ProjectRow(project.ProjectId.Value, project.DisplayName, project.PlanCount),
@@ -128,6 +140,9 @@ else if (model is not null)
             Selected = await Body(revisionId),
             ReportError = null,
         };
+        string? newestId = model.Revisions.Count == 0 ? null : model.Revisions[^1].RevisionId;
+        string target = revisionId == newestId ? $"/plans/{Id}" : $"/plans/{Id}/revisions/{revisionId}";
+        Navigation.NavigateTo(target);
     }
 
     private async Task DownloadReport()
@@ -156,6 +171,6 @@ else if (model is not null)
         if (revision is null) return null;
         ReviewDetail? review = await Reviews.ForRevisionAsync(
             new Annotate.Reviews.Application.RevisionId(revisionId), CancellationToken.None);
-        return RevisionBody.From(revision, review?.Annotations, review?.Status == ReviewStatus.Approved);
+        return RevisionBody.From(revision, review?.Annotations, review?.Status == ReviewStatus.Approved, review?.Id.Value);
     }
 }

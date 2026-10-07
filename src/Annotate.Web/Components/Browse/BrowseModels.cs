@@ -44,6 +44,8 @@ public sealed record RevisionViewModel(
     IReadOnlyList<Annotate.Reviews.Application.Annotation>? Annotations = null,
     string? Summary = null, string? StoryUrl = null, string? AcceptanceCriteria = null,
     bool Approved = false,
-    Annotate.Plans.Application.Attribution? Attribution = null);
+    Annotate.Plans.Application.Attribution? Attribution = null,
+    string? PlanId = null,
+    string? ReviewId = null);
 
-public sealed record BlockRow(string Text, int Start, int End, string Change);
+public sealed record BlockRow(string Text, int Start, int End, string Change, string Key = "");

@@ -4,7 +4,7 @@
         <CascadingValue Value="ok.Document.Decisions">
         @for (int index = 0; index < ok.Document.Blocks.Count; index++)
         {
-            <BlockView Source="@Markdown" Block="ok.Document.Blocks[index]" Ordinal="index" />
+            <BlockView Source="@Markdown" Block="ok.Document.Blocks[index]" Ordinal="index" ReviewId="@ReviewId" BlockKey="@Key(ok, index)" />
         }
         </CascadingValue>
     }
@@ -18,10 +18,26 @@
     [Parameter, EditorRequired]
     public string Markdown { get; set; } = "";
 
+    [Parameter]
+    public string? ReviewId { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<string>? BlockKeys { get; set; }
+
     private ParseOutcome? parsed;
 
     protected override void OnParametersSet()
     {
         parsed = PlanMarkdown.Parse(Markdown);
+    }
+
+    private string? Key(ParseOutcome.Ok ok, int index)
+    {
+        if (string.IsNullOrEmpty(ReviewId) || BlockKeys is null || (uint)index >= (uint)BlockKeys.Count)
+        {
+            return null;
+        }
+
+        return ok.Document.Blocks[index] is HeadingBlock ? BlockKeys[index] : null;
     }
 }

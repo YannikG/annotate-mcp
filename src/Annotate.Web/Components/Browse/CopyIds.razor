@@ -1,0 +1,51 @@
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceProvider Services
+
+@if (Visible)
+{
+    <div class="copy-ids @(dismissed ? "is-dismissed" : null)" data-copy-ids @onmouseleave="OpenAgain">
+        <Button class="btn-icon" data-copy-trigger aria-label="Copy ids" aria-haspopup="menu" tabindex="-1">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg>
+        </Button>
+        <div class="split-menu" role="menu" aria-label="Copy ids">
+            <button type="button" class="split-item" role="menuitem" data-copy-plan tabindex="-1" @onclick="CopyPlan">Copy plan ID</button>
+            @if (!string.IsNullOrEmpty(ReviewId))
+            {
+                <button type="button" class="split-item" role="menuitem" data-copy-review tabindex="-1" @onclick="CopyReview">Copy review ID</button>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? PlanId { get; set; }
+
+    [Parameter]
+    public string? ReviewId { get; set; }
+
+    private bool dismissed;
+
+    private bool Visible =>
+        !string.IsNullOrEmpty(PlanId) && Services.GetService<IClipboard>() is not null;
+
+    private void OpenAgain() => dismissed = false;
+
+    private Task CopyPlan() => Copy(IdCopy.Plan(PlanId!), IdCopy.PlanCopied);
+
+    private Task CopyReview() => Copy(IdCopy.Review(ReviewId!), IdCopy.ReviewCopied);
+
+    private async Task Copy(string text, string success)
+    {
+        dismissed = true;
+        IClipboard? clipboard = Services.GetService<IClipboard>();
+        IToast? toast = Services.GetService<IToast>();
+        if (clipboard is null || toast is null)
+        {
+            return;
+        }
+
+        bool copied = await clipboard.CopyAsync(text);
+        toast.Show(copied ? success : IdCopy.Failed);
+    }
+}

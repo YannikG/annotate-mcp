@@ -6,16 +6,20 @@ namespace Annotate.Web.Components.Browse;
 internal static class RevisionBody
 {
     public static RevisionViewModel From(
-        RevisionDetail revision, IReadOnlyList<Annotation>? annotations = null, bool approved = false) =>
+        RevisionDetail revision,
+        IReadOnlyList<Annotation>? annotations = null,
+        bool approved = false,
+        string? reviewId = null) =>
         new(
             revision.Number,
             revision.Blocks.Select(block => new BlockRow(
                 Text(revision.Markdown, block.Start, block.End),
                 block.Start,
                 block.End,
-                Change(block.Change))).ToArray(),
+                Change(block.Change),
+                block.Key)).ToArray(),
             revision.Markdown, annotations, revision.Summary, revision.StoryUrl, revision.AcceptanceCriteria,
-            approved, revision.Attribution);
+            approved, revision.Attribution, revision.PlanId.Value, reviewId);
 
     private static string Text(string markdown, int start, int end)
     {

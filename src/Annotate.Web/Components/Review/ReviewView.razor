@@ -6,6 +6,7 @@
     </header>
     <EditorToolbar Markdown="@Model.Markdown">
         <Trailing>
+            <CopyIds PlanId="@Model.PlanId" ReviewId="@Model.ReviewId" />
             @if (Model.Prompts.Count > 0)
             {
                 <PanelToggle PanelKey="decisions" Title="Decisions" />
@@ -82,7 +83,7 @@
             {
                 <CascadingValue Value="DecisionContext">
                     <CascadingValue Name="Annotations" Value="Model.Marks">
-                        <PlanText Markdown="@Model.Markdown" />
+                        <PlanText Markdown="@Model.Markdown" ReviewId="@Model.ReviewId" BlockKeys="@Model.BlockKeys" />
                     </CascadingValue>
                 </CascadingValue>
             }

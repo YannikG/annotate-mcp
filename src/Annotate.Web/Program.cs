@@ -36,6 +36,9 @@ builder.Services.AddSingleton<IReviewBrowser>(provider => new ReviewBrowser(
 builder.Services.AddSingleton<IPlanHost, PlanHost>();
 builder.Services.AddScoped<ISelectionReader, JsSelectionReader>();
 builder.Services.AddScoped<IReportScript, JsReportScript>();
+builder.Services.AddScoped<IClipboard, JsClipboard>();
+builder.Services.AddScoped<ToastHub>();
+builder.Services.AddScoped<IToast>(provider => provider.GetRequiredService<ToastHub>());
 builder.Services.AddSingleton<IAutoClosePreference>(new FileAutoClosePreference(dataDirectory));
 builder.Services.AddHostedService<DatabaseStartup>();
 

@@ -1,29 +1,8 @@
 @if (Block is HeadingBlock heading)
 {
-    @if (heading.Level <= 1)
-    {
-        <h1 id="b-@Ordinal"><InlineView Source="@Source" Inlines="heading.Inlines" Ordinal="Ordinal" /></h1>
-    }
-    else if (heading.Level == 2)
-    {
-        <h2 id="b-@Ordinal"><InlineView Source="@Source" Inlines="heading.Inlines" Ordinal="Ordinal" /></h2>
-    }
-    else if (heading.Level == 3)
-    {
-        <h3 id="b-@Ordinal"><InlineView Source="@Source" Inlines="heading.Inlines" Ordinal="Ordinal" /></h3>
-    }
-    else if (heading.Level == 4)
-    {
-        <h4 id="b-@Ordinal"><InlineView Source="@Source" Inlines="heading.Inlines" Ordinal="Ordinal" /></h4>
-    }
-    else if (heading.Level == 5)
-    {
-        <h5 id="b-@Ordinal"><InlineView Source="@Source" Inlines="heading.Inlines" Ordinal="Ordinal" /></h5>
-    }
-    else
-    {
-        <h6 id="b-@Ordinal"><InlineView Source="@Source" Inlines="heading.Inlines" Ordinal="Ordinal" /></h6>
-    }
+    <HeadingView Level="heading.Level" Ordinal="Ordinal" ReviewId="@ReviewId" BlockKey="@BlockKey">
+        <InlineView Source="@Source" Inlines="heading.Inlines" Ordinal="Ordinal" />
+    </HeadingView>
 }
 else if (Block is ParagraphBlock paragraph)
 {
@@ -124,4 +103,10 @@ else if (Block is DetailsBlock details)
 
     [Parameter, EditorRequired]
     public int Ordinal { get; set; }
+
+    [Parameter]
+    public string? ReviewId { get; set; }
+
+    [Parameter]
+    public string? BlockKey { get; set; }
 }

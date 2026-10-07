@@ -397,7 +397,10 @@ else if (model is not null)
             activeNote,
             revision.Attribution,
             projectId,
-            projectName);
+            projectName,
+            revision.PlanId.Value,
+            Id,
+            revision.Blocks.Select(block => block.Key).ToArray());
     }
 
     private Task OnAnnotate(string key) => OnKey(new ReviewKey(key, ""));
