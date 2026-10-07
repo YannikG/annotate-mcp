@@ -77,15 +77,22 @@
     .copy-anchor svg {
         width: 0.7em;
         height: 0.7em;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
     }
 
     .copy-heading:hover .copy-anchor {
-        opacity: 1;
+        color: var(--nav-accent);
+        opacity: 0.5;
     }
 
     .copy-heading .copy-anchor:hover {
         border: 0;
         background: transparent;
-        color: var(--ink);
+        color: var(--nav-accent);
+        opacity: 0.8;
     }
 }
