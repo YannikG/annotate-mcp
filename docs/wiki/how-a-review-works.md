@@ -1,13 +1,13 @@
 # How a review works
 
-A review belongs to exactly one revision. You do not reopen an older decision on that same revision; a new round is a new revision and a new review.
+A review belongs to exactly one revision. You decide on that snapshot; the next round of edits is a new revision with its own review.
 
 ## Statuses
 
-**Pending.** The agent is waiting. You can keep editing annotation drafts, answer decision fences, then approve or request changes.
+**Pending.** Work is waiting on you. Keep editing annotation drafts, answer decision fences, then approve or request changes.
 
-**Approved.** The agent may implement. Draft annotations on that review are discarded.
+**Approved.** You are done with this revision. Draft annotations on that review are discarded.
 
-**Changes requested.** Saved annotations become feedback. The agent revises the plan and submits again with `previousReviewId`.
+**Changes requested.** Your saved annotations become feedback the agent sees next. Expect a new revision when it comes back.
 
 Continue a pending review from the plan page header when you left mid-way. The dashboard pending list opens the review for the newest pending revision.
