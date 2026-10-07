@@ -17,6 +17,26 @@ if [[ ! -f "$sidebar" ]]; then
   echo "expected _Sidebar.md" >&2
   exit 1
 fi
+for use_it in \
+  "How a review works:How-a-review-works" \
+  "Annotating a plan:Annotating-a-plan" \
+  "Projects and plans:Projects-and-plans" \
+  "Dashboard:Dashboard" \
+  "Decision fences:Decision-fences" \
+  "MCP tools:MCP-tools"
+do
+  label="${use_it%%:*}"
+  slug="${use_it##*:}"
+  if ! grep -q "^\* \[${label}\](${slug})$" "$sidebar"; then
+    echo "expected ${label} as a top-level sidebar page" >&2
+    cat "$sidebar" >&2
+    exit 1
+  fi
+  if [[ ! -f "$render/${slug}.md" ]]; then
+    echo "expected ${slug}.md" >&2
+    exit 1
+  fi
+done
 if ! grep -q '^\* \[Installation guide\](Installation-guide)$' "$sidebar"; then
   echo "expected Installation guide as a top-level sidebar page" >&2
   exit 1

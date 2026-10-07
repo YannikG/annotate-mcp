@@ -6,6 +6,15 @@ The idea is close to [opencode-annotate](https://github.com/frontendxlab/opencod
 
 Use as much of it as you want. Open it when you want a better place to read a plan than the transcript. Stay with it when a feature needs many rounds and you want the revisions and the feedback in one project.
 
+## Use the product
+
+- [How a review works](how-a-review-works.md)
+- [Annotating a plan](annotating-a-plan.md)
+- [Projects and plans](projects-and-plans.md)
+- [Dashboard](dashboard.md)
+- [Decision fences](decision-fences.md)
+- [MCP tools](mcp-tools.md)
+
 ## Start
 
 [Install the server](../installation/README.md). Then connect the agent you use.
