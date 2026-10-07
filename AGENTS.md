@@ -1,5 +1,7 @@
 # Annotate
 
+For issues, pull requests, and when a change also needs specs, journeys, wiki, or other docs updated, start with [docs/contributing/README.md](docs/contributing/README.md).
+
 Read [docs/design.md](docs/design.md) and [docs/vocabulary.md](docs/vocabulary.md) before changing the code. Read [docs/ui.md](docs/ui.md) before changing `Components/` or `wwwroot/css/`: tokens come from `tokens.css`, buttons, badges, dialogs, context blocks, and empty states come from `Components/Ui/`, each action lives in exactly one place, and `data-*` attributes are the test and JavaScript contract.
 
 Annotate.Markdown is the shared project listed in `build/shared-projects.txt`. A feature may reference a shared project. Features never reference each other. Annotate.Web is the composition root and the only project that wires features.
