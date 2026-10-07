@@ -32,7 +32,10 @@ public sealed class CopyTests
             .Add(component => component.BlockKeys, (IReadOnlyList<string>)["key", "para"]));
 
         Assert.Equal("Title", page.Find("h1").TextContent.Trim());
-        Assert.Equal("Copy block ID", page.Find("[data-copy-block]").GetAttribute("aria-label"));
+        IElement copy = page.Find("[data-copy-block]");
+        Assert.Equal("Copy block ID", copy.GetAttribute("aria-label"));
+        Assert.Contains("btn-quiet", copy.ClassName, StringComparison.Ordinal);
+        Assert.DoesNotContain("btn-icon", copy.ClassName, StringComparison.Ordinal);
         Assert.Empty(page.FindAll("p [data-copy-block]"));
         await page.Find("[data-copy-block]").ClickAsync();
 
