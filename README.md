@@ -1,10 +1,10 @@
 # Annotate
 
-MCP server and GUI: immutable Markdown plan revisions, one review per revision, feedback back to the agent.
+Annotate is an MCP server and GUI for immutable Markdown plan revisions, one review per revision, and feedback back to the agent.
 
 The agent submits a plan as Markdown. You open one revision, leave annotations where the text should change, and finish the review. When you request changes, feedback goes back to the agent; older revisions stay on the plan.
 
-![Review UI with annotations on a plan revision](docs/images/review-ui.webp)
+![Review page with a deletion, a comment, and an answered decision fence](docs/images/review-ui.webp)
 
 ## Run it
 

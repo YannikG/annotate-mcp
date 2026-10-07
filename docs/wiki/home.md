@@ -6,6 +6,12 @@ The idea is close to [opencode-annotate](https://github.com/frontendxlab/opencod
 
 Use as much of it as you want. Open it when you want a better place to read a plan than the transcript. Stay with it when a feature needs many rounds and you want the revisions and the feedback in one project.
 
+## Start
+
+[Install the server](../installation/README.md), then pick your agent from the [Agents](../installation/README.md#agents) table on that page. The published image does not exist until the first `v*` tag; until then [manual deployment](../deployment/README.md) runs this checkout.
+
+People changing Annotate start at the [development guide](../development/README.md). Issues and pull requests are in the [contribution guide](../contributing/README.md).
+
 ## Use the product
 
 - [How a review works](how-a-review-works.md)
@@ -14,9 +20,3 @@ Use as much of it as you want. Open it when you want a better place to read a pl
 - [Dashboard](dashboard.md)
 - [Decision fences](decision-fences.md)
 - [MCP tools](mcp-tools.md)
-
-## Start
-
-[Install the server](../installation/README.md), then pick your agent from the [Agents](../installation/README.md#agents) table on that page. The published image does not exist until the first `v*` tag; until then [manual deployment](../deployment/README.md) runs this checkout.
-
-People changing Annotate start at the [development guide](../development/README.md). Issues and pull requests are in the [contribution guide](../contributing/README.md).

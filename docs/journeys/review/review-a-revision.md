@@ -6,13 +6,13 @@ sources:
 
 # Review a revision
 
-As a reviewer, I decide on one Revision so the agent knows whether to implement or revise.
+As a reviewer, I decide on one revision so the agent knows whether to implement or revise.
 
 ## Steps
 
-1. Open the pending Review (Dashboard list or Plan header Continue review).
-2. Read the Revision; check which Blocks changed if this is not revision 1.
-3. Optionally leave Annotation drafts or answer Decision fences.
-4. Approve, or request changes so Feedback returns to the agent.
+1. Open the pending review (dashboard list or plan header Continue review).
+2. Read the revision; check which blocks changed if this is not revision 1.
+3. Optionally leave annotation drafts or answer decision fences.
+4. Approve, or request changes so feedback returns to the agent.
 
 Spec: [docs/specs/review/review-a-revision.md](../../specs/review/review-a-revision.md)
