@@ -156,6 +156,6 @@ else if (model is not null)
         if (revision is null) return null;
         ReviewDetail? review = await Reviews.ForRevisionAsync(
             new Annotate.Reviews.Application.RevisionId(revisionId), CancellationToken.None);
-        return RevisionBody.From(revision, review?.Annotations, review?.Status == ReviewStatus.Approved);
+        return RevisionBody.From(revision, review?.Annotations, review?.Status == ReviewStatus.Approved, review?.Id.Value);
     }
 }

@@ -59,6 +59,6 @@ else if (model is not null)
 
         ReviewDetail? review = await Reviews.ForRevisionAsync(
             new Annotate.Reviews.Application.RevisionId(Id), CancellationToken.None);
-        model = RevisionBody.From(revision, review?.Annotations);
+        model = RevisionBody.From(revision, review?.Annotations, reviewId: review?.Id.Value);
     }
 }

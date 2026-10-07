@@ -1,0 +1,35 @@
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceProvider Services
+
+@if (CanCopy)
+{
+    <Button class="btn-icon copy-anchor" data-copy-block aria-label="Copy block ID" tabindex="-1" OnClick="Copy">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg>
+    </Button>
+}
+
+@code {
+    [Parameter]
+    public string? ReviewId { get; set; }
+
+    [Parameter]
+    public string? BlockKey { get; set; }
+
+    private bool CanCopy =>
+        !string.IsNullOrEmpty(ReviewId)
+        && !string.IsNullOrEmpty(BlockKey)
+        && Services.GetService<IClipboard>() is not null;
+
+    private async Task Copy()
+    {
+        IClipboard? clipboard = Services.GetService<IClipboard>();
+        IToast? toast = Services.GetService<IToast>();
+        if (clipboard is null || toast is null || string.IsNullOrEmpty(ReviewId) || string.IsNullOrEmpty(BlockKey))
+        {
+            return;
+        }
+
+        bool copied = await clipboard.CopyAsync(IdCopy.Block(ReviewId, BlockKey));
+        toast.Show(copied ? IdCopy.BlockCopied : IdCopy.Failed);
+    }
+}

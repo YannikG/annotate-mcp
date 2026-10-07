@@ -9,6 +9,7 @@ else
 <EditorToolbar Markdown="@Model.Markdown">
     <Leading>@Controls</Leading>
     <Trailing>
+        <CopyIds PlanId="@Model.PlanId" ReviewId="@Model.ReviewId" />
         @Actions
         <PanelToggle PanelKey="annotations" Title="Annotations" />
     </Trailing>
@@ -23,7 +24,7 @@ else
         <div class="revision-document">
             <RevisionContext StoryUrl="@Model.StoryUrl" AcceptanceCriteria="@Model.AcceptanceCriteria" Attribution="@Model.Attribution" />
             <CascadingValue Name="Annotations" Value="@(Model.Annotations ?? Array.Empty<Annotation>())">
-                <PlanText Markdown="@Model.Markdown" />
+                <PlanText Markdown="@Model.Markdown" ReviewId="@Model.ReviewId" BlockKeys="@BlockKeys" />
             </CascadingValue>
             <details class="revision-changes" data-revision-changes @key="Model">
                 <summary>Changes</summary>
@@ -62,4 +63,6 @@ else
 
     [Parameter]
     public RenderFragment? Actions { get; set; }
+
+    private IReadOnlyList<string> BlockKeys => Model.Blocks.Select(block => block.Key).ToArray();
 }

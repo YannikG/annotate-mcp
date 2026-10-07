@@ -38,6 +38,7 @@ Stylesheets load in this order from `App.razor`. Each has one job.
 | `panels.css` | Side panels, contents nav, flyouts, the 1100px desktop rules |
 | `document.css` | Rendered plan prose: headings, code blocks, mermaid, diff blocks, decision cards |
 | `review.css` | Annotation marks in text, annotation cards, the selection popup, the diff list |
+| `copy.css` | Desktop hover controls that copy a plan id, a review id, or a heading's block key, and the toast |
 
 Scoped `.razor.css` files remain for Blazor infrastructure only (`MainLayout`, `ReconnectModal`). They follow the same rules.
 
@@ -83,6 +84,8 @@ All live in `src/Annotate.Web/Components/Ui/` and are in scope via `_Imports.raz
 
 **`<EmptyState>`** — the only empty state: a title and an optional hint. Lists and side panels share it.
 
+**`<ToastHost>`** — the one toast, mounted in the shell. Any page calls `IToast.Show`. A newer message replaces the one on screen, and the toast leaves on its own.
+
 **`<RevisionContext>`** (`Components/Browse/`) — the Story, acceptance criteria, and written-by section. Plan, review, and revision pages all use it; nobody re-implements it.
 
 **`<DocumentBoard>`** (`Components/Browse/`) — the three-column document shell: contents nav on the left, `Panels` slot on the right, document as child content. Review, plan, and revision pages share it.
@@ -106,6 +109,8 @@ Reports are standalone HTML and cannot link `tokens.css`, so `PlanReportStyles` 
 | Answer a decision | The decision dialog, opened from the card's Answer button |
 | Project edit, archive, delete | The project page header |
 | Theme switch | The shared navigation |
+| Copy a plan or review id | The editor toolbar copy menu |
+| Copy a heading's block key | The copy icon at the start of that heading |
 
 Keyboard shortcuts (`d`, `r`, `s`, `c`) trigger the same popup commands; they are not separate UI.
 

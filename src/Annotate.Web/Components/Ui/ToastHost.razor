@@ -1,0 +1,31 @@
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceProvider Services
+@implements IDisposable
+
+@if (toast is not null)
+{
+    <div class="toast-host" data-toast role="status" hidden="@string.IsNullOrEmpty(toast.Message)">@toast.Message</div>
+}
+
+@code {
+    private IToast? toast;
+
+    protected override void OnInitialized()
+    {
+        toast = Services.GetService<IToast>();
+        if (toast is not null)
+        {
+            toast.Changed += OnChanged;
+        }
+    }
+
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        if (toast is not null)
+        {
+            toast.Changed -= OnChanged;
+        }
+    }
+}
