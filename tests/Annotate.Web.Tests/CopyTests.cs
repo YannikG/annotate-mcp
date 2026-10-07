@@ -31,11 +31,12 @@ public sealed class CopyTests
             .Add(component => component.ReviewId, "rev")
             .Add(component => component.BlockKeys, (IReadOnlyList<string>)["key", "para"]));
 
-        Assert.Equal("Title", page.Find("h1").TextContent.Trim());
+        Assert.Equal("Title", page.Find("h1").TextContent.Replace("Copies the review id and this block id", "").Trim());
         IElement copy = page.Find("[data-copy-block]");
         Assert.Equal("Copy block ID", copy.GetAttribute("aria-label"));
         Assert.Contains("btn-quiet", copy.ClassName, StringComparison.Ordinal);
         Assert.DoesNotContain("btn-icon", copy.ClassName, StringComparison.Ordinal);
+        Assert.Equal("Copies the review id and this block id", page.Find("[data-copy-tip]").TextContent);
         Assert.Empty(page.FindAll("p [data-copy-block]"));
         await page.Find("[data-copy-block]").ClickAsync();
 
