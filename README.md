@@ -1,25 +1,15 @@
 # Annotate
 
-Annotate stores a plan as immutable Markdown revisions, records a review of one revision, and returns feedback to the agent.
+Annotate is an MCP server and GUI for immutable Markdown plan revisions, one review per revision, and feedback back to the agent.
 
-The guide for using it is on the [wiki](https://github.com/YannikG/annotate-mcp/wiki).
+The agent submits a plan as Markdown. You open one revision, leave annotations where the text should change, and finish the review. When you request changes, feedback goes back to the agent; older revisions stay on the plan.
 
-## Guides
+![Review page with a deletion, a comment, and an answered decision fence](docs/images/review-ui.webp)
 
-| Guide | Page |
-| --- | --- |
-| Installation guide | [docs/installation/README.md](docs/installation/README.md) |
-| Manual deployment | [docs/deployment/README.md](docs/deployment/README.md) |
-| Development guide | [docs/development/README.md](docs/development/README.md) |
-| Contribution guide | [docs/contributing/README.md](docs/contributing/README.md) |
+## Run it
 
-| If you need… | Start here |
-| --- | --- |
-| Use the MCP server | [Installation guide](docs/installation/README.md) |
-| Connect an agent and make it call `annotate_plan` | The agent page linked from the installation guide |
-| Run this checkout with Compose | [Manual deployment](docs/deployment/README.md) |
-| Run from source or change the code | [Development guide](docs/development/README.md) |
-| Open an issue or a pull request | [Contribution guide](docs/contributing/README.md) |
-| Module map | [Design](docs/design.md) |
-| Words | [Vocabulary](docs/vocabulary.md) |
-| UI rules | [UI](docs/ui.md) |
+There is no published image yet. [Manual deployment](docs/deployment/README.md) runs this checkout with Compose on http://127.0.0.1:24173.
+
+How to use Annotate lives on the [wiki](https://github.com/YannikG/annotate-mcp/wiki).
+
+[Agents start here](docs/installation/README.md#agents).

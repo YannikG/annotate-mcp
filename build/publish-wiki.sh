@@ -17,6 +17,12 @@ root = pathlib.Path(sys.argv[1])
 render_only = sys.argv[2]
 pages = {
     "docs/wiki/home.md": "Home",
+    "docs/wiki/how-a-review-works.md": "How-a-review-works",
+    "docs/wiki/annotating-a-plan.md": "Annotating-a-plan",
+    "docs/wiki/projects-and-plans.md": "Projects-and-plans",
+    "docs/wiki/dashboard.md": "Dashboard",
+    "docs/wiki/decision-fences.md": "Decision-fences",
+    "docs/wiki/mcp-tools.md": "MCP-tools",
     "docs/installation/README.md": "Installation-guide",
     "docs/installation/claude-code/README.md": "Installation-guide-Claude-Code",
     "docs/installation/codex/README.md": "Installation-guide-Codex",
@@ -31,6 +37,12 @@ sidebar = """\
 **Use it**
 
 * [Home](Home)
+* [How a review works](How-a-review-works)
+* [Annotating a plan](Annotating-a-plan)
+* [Projects and plans](Projects-and-plans)
+* [Dashboard](Dashboard)
+* [Decision fences](Decision-fences)
+* [MCP tools](MCP-tools)
 * [Installation guide](Installation-guide)
   * [Claude Code](Installation-guide-Claude-Code)
   * [Codex](Installation-guide-Codex)
