@@ -170,6 +170,7 @@ public sealed class CopyTests
         Assert.Contains(".copy-anchor", css, StringComparison.Ordinal);
         Assert.Contains("color: var(--nav-accent)", css, StringComparison.Ordinal);
         Assert.Contains("opacity: 0.5", css, StringComparison.Ordinal);
+        Assert.Contains(".copy-anchor svg {\n        width: var(--space-5)", css, StringComparison.Ordinal);
         Assert.DoesNotContain(":focus", css, StringComparison.Ordinal);
         Assert.Contains("css/copy.css", app, StringComparison.Ordinal);
         Assert.Contains("js/clipboard.js", app, StringComparison.Ordinal);
