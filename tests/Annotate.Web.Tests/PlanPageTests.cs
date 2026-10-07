@@ -7,6 +7,7 @@ using Annotate.Web.Components.Pages;
 
 using Bunit;
 
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
 using PlanRevisionId = Annotate.Plans.Application.RevisionId;
@@ -195,6 +196,95 @@ public sealed class PlanPageTests
         page.WaitForAssertion(() => Assert.NotNull(page.Find("[data-download-report]")));
         await ChooseRevision(page, "v2 · No review");
         page.WaitForAssertion(() => Assert.Empty(page.FindAll("[data-download-report]")));
+    }
+
+    [Fact]
+    public async Task SwitchingRevisionPutsThatRevisionInTheAddress()
+    {
+        FakePlans plans = new();
+        plans.Projects.Add(new ProjectSummary(new ProjectId("project-1"), "Atlas", "/work/atlas", 1));
+        plans.PlansById["plan-1"] = new PlanDetail(
+            new PlanId("plan-1"),
+            new ProjectId("project-1"),
+            "Storage",
+            null,
+            [
+                new PlanRevision(new PlanRevisionId("rev-1"), 1, At(1, 8)),
+                new PlanRevision(new PlanRevisionId("rev-2"), 2, At(2, 9)),
+            ]);
+        plans.Revisions["rev-1"] = Detail("rev-1", 1, "First\n");
+        plans.Revisions["rev-2"] = Detail("rev-2", 2, "Second\n");
+
+        using BunitContext context = BrowseHost.Open(plans, new FakeReviews());
+        NavigationManager navigation = context.Services.GetRequiredService<NavigationManager>();
+        IRenderedComponent<PlanPage> page = context.Render<PlanPage>(parameters =>
+            parameters.Add(component => component.Id, "plan-1"));
+
+        page.WaitForAssertion(() =>
+            Assert.Contains("Second", page.Find("[data-plan]").TextContent, StringComparison.Ordinal));
+        await ChooseRevision(page, "v1 · No review");
+        page.WaitForAssertion(() =>
+        {
+            Assert.Contains("First", page.Find("[data-plan]").TextContent, StringComparison.Ordinal);
+            Assert.EndsWith("/plans/plan-1/revisions/rev-1", navigation.Uri, StringComparison.Ordinal);
+        });
+
+        await ChooseRevision(page, "v2 · No review");
+        page.WaitForAssertion(() =>
+        {
+            Assert.Contains("Second", page.Find("[data-plan]").TextContent, StringComparison.Ordinal);
+            Assert.EndsWith("/plans/plan-1", navigation.Uri, StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]
+    public void OpeningARevisionAddressShowsThatRevision()
+    {
+        FakePlans plans = new();
+        plans.Projects.Add(new ProjectSummary(new ProjectId("project-1"), "Atlas", "/work/atlas", 1));
+        plans.PlansById["plan-1"] = new PlanDetail(
+            new PlanId("plan-1"),
+            new ProjectId("project-1"),
+            "Storage",
+            null,
+            [
+                new PlanRevision(new PlanRevisionId("rev-1"), 1, At(1, 8)),
+                new PlanRevision(new PlanRevisionId("rev-2"), 2, At(2, 9)),
+            ]);
+        plans.Revisions["rev-1"] = Detail("rev-1", 1, "First\n");
+        plans.Revisions["rev-2"] = Detail("rev-2", 2, "Second\n");
+
+        using BunitContext context = BrowseHost.Open(plans, new FakeReviews());
+        IRenderedComponent<PlanPage> page = context.Render<PlanPage>(parameters => parameters
+            .Add(component => component.Id, "plan-1")
+            .Add(component => component.RevisionId, "rev-1"));
+
+        page.WaitForAssertion(() =>
+        {
+            Assert.Contains("First", page.Find("[data-plan]").TextContent, StringComparison.Ordinal);
+            Assert.Equal("v1 · No review", page.Find("[data-select-trigger]").TextContent.Trim());
+        });
+    }
+
+    [Fact]
+    public void UnknownRevisionAddressIsNotFound()
+    {
+        FakePlans plans = new();
+        plans.Projects.Add(new ProjectSummary(new ProjectId("project-1"), "Atlas", "/work/atlas", 1));
+        plans.PlansById["plan-1"] = new PlanDetail(
+            new PlanId("plan-1"),
+            new ProjectId("project-1"),
+            "Storage",
+            null,
+            [new PlanRevision(new PlanRevisionId("rev-1"), 1, At(1, 8))]);
+        plans.Revisions["rev-1"] = Detail("rev-1", 1, "First\n");
+
+        using BunitContext context = BrowseHost.Open(plans, new FakeReviews());
+        IRenderedComponent<PlanPage> page = context.Render<PlanPage>(parameters => parameters
+            .Add(component => component.Id, "plan-1")
+            .Add(component => component.RevisionId, "missing"));
+
+        page.WaitForAssertion(() => Assert.Equal("Not found", page.Find("h1").TextContent));
     }
 
     private static async Task ChooseRevision(IRenderedComponent<PlanPage> page, string label)
