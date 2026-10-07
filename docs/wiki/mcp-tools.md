@@ -10,4 +10,4 @@ Your agent talks to Annotate through a small set of MCP tools. You mostly see th
 | `get_plan_markdown_guide` | Used when the agent needs the Markdown shapes the review page understands (tables, diagrams, decision fences). |
 | `list_revision_blocks` / `read_revision_block` | Lets the agent inspect stored blocks on a revision by block key. |
 
-Connect and wire the agent from the [installation guide](../installation/README.md). The paste-in rules that make the agent call these tools live on each agent page there.
+Wire the agent from the [Agents](../installation/README.md#agents) table on the installation guide. Paste-in rules live on each agent page linked from there.

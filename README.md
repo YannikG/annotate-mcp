@@ -12,11 +12,4 @@ There is no published image yet. [Manual deployment](docs/deployment/README.md) 
 
 How to use Annotate lives on the [wiki](https://github.com/YannikG/annotate-mcp/wiki).
 
-## Guides
-
-| Guide | Page |
-| --- | --- |
-| Manual deployment | [docs/deployment/README.md](docs/deployment/README.md) |
-| Installation guide | [docs/installation/README.md](docs/installation/README.md) |
-| Development guide | [docs/development/README.md](docs/development/README.md) |
-| Contribution guide | [docs/contributing/README.md](docs/contributing/README.md) |
+[Agents start here](docs/installation/README.md#agents).
