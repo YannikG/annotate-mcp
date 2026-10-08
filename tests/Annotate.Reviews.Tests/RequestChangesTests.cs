@@ -70,10 +70,15 @@ public sealed class RequestChangesTests
         ### Suggested Changes
 
         1. {--old line--}}{id="del" by="user" at="t1"}
+        from: operator
         2. {~~old~>new~~}}{id="rep" by="user" at="t2"}
+        from: operator
         3. After {==anchor==}}, insert {++added++}}{id="ins" by="user" at="t3"}
+        from: operator
         4. {==note==}}{{>>why<<}}{id="com" by="user" at="t4"}
+        from: operator
         5. {--a[escaped --]b--}}{id="say \"hi\"\\x" by="user" at="t\"5"}
+        from: operator
 
         Please revise the plan to address this feedback and submit the revised draft again.
         """;

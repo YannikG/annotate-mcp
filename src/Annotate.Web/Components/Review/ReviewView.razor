@@ -24,7 +24,7 @@
                 <input type="checkbox" data-auto-close checked="@Model.AutoCloseOnSubmit" @onchange="OnAutoClose" />
                 Auto-close
             </label>
-            <Button Variant="ButtonVariant.Destructive" data-request-changes Disabled="@(!Model.Pending)" OnClick="RequestChanges">Request changes</Button>
+            <Button Variant="ButtonVariant.Destructive" data-request-changes Disabled="@(!Model.Pending)" OnClick="AskRequestChanges">Request changes</Button>
             <div class="split">
                 <Button Variant="ButtonVariant.Primary" data-approve Disabled="@(!Model.CanApprove)" OnClick="Approve">Approve</Button>
                 <button type="button" class="split-toggle" aria-haspopup="menu" aria-expanded="@(menuOpen ? "true" : "false")" aria-label="Approve and Download report" disabled="@(!Model.CanApprove)" @onclick="ToggleMenu">
@@ -58,7 +58,7 @@
                 </SidePanel>
             }
             <SidePanel PanelKey="annotations" Title="Annotations" ShowTrigger="false">
-                <AnnotationCards Annotations="Model.Annotations" />
+                <AnnotationCards Annotations="Model.Annotations" Pending="Model.Pending" ReviewId="@Model.ReviewId" BlockNames="Model.BlockNames" Changed="Changed" Ask="AskAnnotation" RemovePhrase="RemovePhrase" />
             </SidePanel>
         </Panels>
         <ChildContent>
@@ -83,7 +83,9 @@
             {
                 <CascadingValue Value="DecisionContext">
                     <CascadingValue Name="Annotations" Value="Model.Marks">
-                        <PlanText Markdown="@Model.Markdown" ReviewId="@Model.ReviewId" BlockKeys="@Model.BlockKeys" />
+                        <CascadingValue Name="AnnotationsChanged" Value="AnnotationRefresh">
+                            <PlanText Markdown="@Model.Markdown" ReviewId="@Model.ReviewId" BlockKeys="@Model.BlockKeys" />
+                        </CascadingValue>
                     </CascadingValue>
                 </CascadingValue>
             }
@@ -130,6 +132,14 @@
     @if (Model.Dialog is not null)
     {
         <DecisionDialog Model="Model.Dialog" Close="CloseDialog" Previous="PreviousPrompt" Next="NextPrompt" Done="FinishPrompt" />
+    }
+    @if (dropCount > 0)
+    {
+        <ConfirmDialog Title="Request changes?" Body="@DropBody" ConfirmLabel="Request changes" ConfirmVariant="ButtonVariant.Destructive" Confirm="ConfirmRequest" Cancel="CancelRequest" />
+    }
+    @if (annotationConfirm is not null)
+    {
+        <ConfirmDialog Title="@annotationConfirm.Title" Body="@annotationConfirm.Body" ConfirmLabel="Delete" ConfirmVariant="ButtonVariant.Destructive" Confirm="ConfirmAnnotation" Cancel="CancelAnnotation" />
     }
 </div>
 
@@ -189,6 +199,51 @@
 
     [Parameter]
     public EventCallback<ReviewKey> Key { get; set; }
+
+    [Parameter]
+    public EventCallback Changed { get; set; }
+
+    [Parameter]
+    public EventCallback<string> RemovePhrase { get; set; }
+
+    private int dropCount;
+
+    private EventCallback AnnotationRefresh => Model.Pending ? Changed : default;
+
+    private string DropBody =>
+        dropCount == 1
+            ? "1 unaccepted agent note will be dropped."
+            : $"{dropCount} unaccepted agent notes will be dropped.";
+
+    private Task AskRequestChanges()
+    {
+        dropCount = Model.Annotations.Count(item => item.Author == AnnotationAuthor.Agent && item.Accepted != true);
+        return dropCount == 0 ? RequestChanges.InvokeAsync() : Task.CompletedTask;
+    }
+
+    private async Task ConfirmRequest()
+    {
+        dropCount = 0;
+        await RequestChanges.InvokeAsync();
+    }
+
+    private void CancelRequest() => dropCount = 0;
+
+    private AnnotationConfirm? annotationConfirm;
+
+    private void AskAnnotation(AnnotationConfirm confirm) => annotationConfirm = confirm;
+
+    private void CancelAnnotation() => annotationConfirm = null;
+
+    private async Task ConfirmAnnotation()
+    {
+        Func<Task>? action = annotationConfirm?.Action;
+        annotationConfirm = null;
+        if (action is not null)
+        {
+            await action();
+        }
+    }
 
     private string noteDraft = "";
 

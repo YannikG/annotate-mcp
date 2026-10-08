@@ -92,9 +92,42 @@ internal static class ReviewsModel
                 .HasColumnName("created_at")
                 .HasMaxLength(ReviewLimits.CreatedAt)
                 .IsRequired();
+            entity.Property(annotation => annotation.BlockKey)
+                .HasColumnName("block_key")
+                .HasMaxLength(ReviewLimits.Id);
+            entity.Property(annotation => annotation.Author)
+                .HasColumnName("author")
+                .HasMaxLength(ReviewLimits.Author)
+                .HasDefaultValue("operator")
+                .IsRequired();
+            entity.Property(annotation => annotation.Accepted).HasColumnName("accepted");
             entity.HasOne<Review>()
                 .WithMany()
                 .HasForeignKey(annotation => annotation.ReviewId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<StoredReply>(entity =>
+        {
+            entity.ToTable("annotation_replies");
+            entity.HasKey(reply => new { reply.ReviewId, reply.AnnotationId, reply.Ordinal });
+            entity.Property(reply => reply.ReviewId).HasColumnName("review_id").HasMaxLength(ReviewLimits.Id);
+            entity.Property(reply => reply.AnnotationId)
+                .HasColumnName("annotation_id")
+                .HasMaxLength(ReviewLimits.AnnotationId);
+            entity.Property(reply => reply.Ordinal).HasColumnName("ordinal").ValueGeneratedNever();
+            entity.Property(reply => reply.ReplyId)
+                .HasColumnName("reply_id")
+                .HasMaxLength(ReviewLimits.AnnotationId)
+                .IsRequired();
+            entity.Property(reply => reply.Text).HasColumnName("text").HasMaxLength(ReviewLimits.Note).IsRequired();
+            entity.Property(reply => reply.CreatedAt)
+                .HasColumnName("created_at")
+                .HasMaxLength(ReviewLimits.CreatedAt)
+                .IsRequired();
+            entity.HasOne<Review>()
+                .WithMany()
+                .HasForeignKey(reply => reply.ReviewId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

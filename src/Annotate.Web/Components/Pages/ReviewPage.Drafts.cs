@@ -7,6 +7,70 @@ public partial class ReviewPage
     private Task draftSave = Task.CompletedTask;
     private int draftVersion;
     private string? draftSaveStatus;
+    private readonly List<Annotation> threads = [];
+
+    private async Task RefreshAnnotations()
+    {
+        if (model is null)
+        {
+            loadedId = null;
+            await OnParametersSetAsync();
+            return;
+        }
+
+        ReviewDetail? review;
+        while (true)
+        {
+            int version = draftVersion;
+            await draftSave;
+            if (version != draftVersion)
+            {
+                continue;
+            }
+
+            try
+            {
+                review = await Reviews.FindAsync(new ReviewId(Id), CancellationToken.None);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
+            if (review is null)
+            {
+                return;
+            }
+
+            if (version != draftVersion)
+            {
+                continue;
+            }
+
+            break;
+        }
+
+        drafts.Clear();
+        threads.Clear();
+        foreach (Annotation annotation in review.Annotations)
+        {
+            (annotation.BlockKey is null ? drafts : threads).Add(annotation);
+        }
+
+        status = review.Status;
+        pending = review.Status == ReviewStatus.Pending;
+        Publish();
+    }
+
+    private async Task RemovePhrase(string annotationId)
+    {
+        if (drafts.RemoveAll(item => item.Id == annotationId) == 0)
+        {
+            return;
+        }
+
+        await PersistDrafts();
+    }
 
     private Task<bool> RetryDraft() => PersistDrafts();
 

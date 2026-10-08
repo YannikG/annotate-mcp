@@ -70,7 +70,7 @@ Scoped `.razor.css` files remain for Blazor infrastructure only (`MainLayout`, `
 
 All live in `src/Annotate.Web/Components/Ui/` and are in scope via `_Imports.razor`.
 
-**`<Button>`** — the only button. `Variant` is `Secondary` (default), `Primary`, `Quiet`, or `Destructive`. `Type` defaults to `button`; pass `Type="submit"` inside forms. Extra attributes (including `data-*` and `class`) splat onto the element. Icon-only buttons add `class="btn-icon"`.
+**`<Button>`** — the only button. `Variant` is `Secondary` (default), `Primary`, `Quiet`, or `Destructive`. `Type` defaults to `button`; pass `Type="submit"` inside forms. Extra attributes (including `data-*` and `class`) splat onto the element. Icon-only buttons add `class="btn-icon"`. Buttons inside an annotation card add `class="btn-sm"`.
 
 **`<Badge>`** — a status pill. `Tone` becomes `data-state`: `pending`, `approved`, `changes`, or `neutral`. Styling keys off `data-state`, so the badge never carries a per-view class.
 
@@ -111,6 +111,9 @@ Reports are standalone HTML and cannot link `tokens.css`, so `PlanReportStyles` 
 | Theme switch | The shared navigation |
 | Copy a plan or review id | The editor toolbar copy menu |
 | Copy a heading's review id and block key | The copy icon at the start of that heading |
+| Reply to an annotation | The reply field on that annotation card |
+| Delete an annotation or a reply | Delete on that card, after the confirm dialog |
+| Accept an agent note | The Accept pill on that agent note, which turns into Accepted |
 
 The heading copy icon shows the tooltip “Copies the review id and this block id” before the click. Keyboard shortcuts (`d`, `r`, `s`, `c`) trigger the same popup commands; they are not separate UI.
 

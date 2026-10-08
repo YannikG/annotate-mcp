@@ -73,4 +73,13 @@ internal sealed class PlanTools
         [Description("Block ID. The stable block key stored on that revision.")] string blockId,
         CancellationToken cancellationToken = default) =>
         host.ReadBlockAsync(revisionId, blockId, cancellationToken);
+
+    [McpServerTool(Name = "annotate_block"), Description("Adds a comment on one whole block of a pending review. Pass the review id, the block id, and the comment. The note starts not accepted.")]
+    public static Task<string> AnnotateBlock(
+        IPlanHost host,
+        [Description("Review ID.")] string reviewId,
+        [Description("Block ID. The stable block key on that review's revision.")] string blockId,
+        [Description("The comment.")] string comment,
+        CancellationToken cancellationToken = default) =>
+        host.AnnotateBlockAsync(reviewId, blockId, comment, cancellationToken);
 }

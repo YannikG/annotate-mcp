@@ -22,6 +22,8 @@ internal static class ReviewLimits
 
     public const int AnnotationKind = 16;
 
+    public const int Author = 8;
+
     public const int Text = 4000;
 
     public const int Note = 4000;

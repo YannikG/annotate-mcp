@@ -9,4 +9,7 @@ internal readonly record struct AnnotationDraft(
     int BlockOrdinal,
     int StartOffset,
     int EndOffset,
-    string CreatedAt);
+    string CreatedAt,
+    string? BlockKey = null,
+    string Author = "operator",
+    IReadOnlyList<string>? Replies = null);

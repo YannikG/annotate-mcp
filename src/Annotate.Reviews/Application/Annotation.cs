@@ -8,6 +8,16 @@ public enum AnnotationKind
     Comment,
 }
 
+public enum AnnotationAuthor
+{
+    Operator,
+    Agent,
+}
+
+public sealed record AnnotationReply(string Id, string Text, string CreatedAt);
+
+public sealed record BlockComment(string BlockKey, string Comment, AnnotationAuthor Author);
+
 public sealed record Annotation(
     string Id,
     AnnotationKind Kind,
@@ -17,4 +27,8 @@ public sealed record Annotation(
     int BlockOrdinal,
     int StartOffset,
     int EndOffset,
-    string CreatedAt);
+    string CreatedAt,
+    string? BlockKey = null,
+    AnnotationAuthor Author = AnnotationAuthor.Operator,
+    bool? Accepted = null,
+    IReadOnlyList<AnnotationReply>? Replies = null);

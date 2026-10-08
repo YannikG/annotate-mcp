@@ -5,41 +5,32 @@
 <ol class="stack" data-annotations>
     @foreach (Annotation annotation in Annotations)
     {
-        <li data-kind="@annotation.Kind">
-            <span class="kind">@annotation.Kind</span>
-            <span data-text>@annotation.Text</span>
-            @if (string.IsNullOrEmpty(annotation.Replacement))
-            {
-                <span data-replacement></span>
-            }
-            else
-            {
-                <span class="detail">
-                    <span class="detail-label">Replacement</span>
-                    <span data-replacement>@annotation.Replacement</span>
-                </span>
-            }
-            @if (string.IsNullOrEmpty(annotation.Comment))
-            {
-                <span data-comment></span>
-            }
-            else
-            {
-                <span class="detail">
-                    <span class="detail-label">Comment</span>
-                    <span data-comment>@annotation.Comment</span>
-                </span>
-            }
-            <span class="visually-hidden" data-block>@annotation.BlockOrdinal</span>
-            <span class="visually-hidden" data-start>@annotation.StartOffset</span>
-            <span class="visually-hidden" data-end>@annotation.EndOffset</span>
-            <span class="visually-hidden" data-id>@annotation.Id</span>
-            <span class="visually-hidden" data-created>@annotation.CreatedAt</span>
-        </li>
+        <AnnotationThread @key="annotation.Id" Annotation="annotation" Pending="Pending" ReviewId="@ReviewId" BlockName="@Name(annotation.BlockKey)" Changed="Changed" Ask="Ask" RemovePhrase="RemovePhrase" />
     }
 </ol>
 
 @code {
     [Parameter, EditorRequired]
     public IReadOnlyList<Annotation> Annotations { get; set; } = [];
+
+    [Parameter]
+    public bool Pending { get; set; }
+
+    [Parameter]
+    public string? ReviewId { get; set; }
+
+    [Parameter]
+    public EventCallback Changed { get; set; }
+
+    [Parameter]
+    public EventCallback<AnnotationConfirm> Ask { get; set; }
+
+    [Parameter]
+    public EventCallback<string> RemovePhrase { get; set; }
+
+    [Parameter]
+    public IReadOnlyDictionary<string, string>? BlockNames { get; set; }
+
+    private string? Name(string? blockKey) =>
+        blockKey is not null && BlockNames?.TryGetValue(blockKey, out string? name) == true ? name : blockKey;
 }

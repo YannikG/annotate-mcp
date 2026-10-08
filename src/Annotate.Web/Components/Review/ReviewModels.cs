@@ -31,7 +31,8 @@ public sealed record ReviewViewModel(
     string? ProjectName = null,
     string? PlanId = null,
     string? ReviewId = null,
-    IReadOnlyList<string>? BlockKeys = null)
+    IReadOnlyList<string>? BlockKeys = null,
+    IReadOnlyDictionary<string, string>? BlockNames = null)
 {
     public IReadOnlyList<Annotation> Marks => ActiveNote is null ? Annotations : [.. Annotations, ActiveNote];
 }

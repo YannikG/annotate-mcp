@@ -88,6 +88,10 @@ internal static class ReviewReader
             .Where(annotation => annotation.ReviewId == review.Id)
             .OrderBy(annotation => annotation.Ordinal)
             .ToListAsync(cancellationToken);
+        List<StoredReply> replies = await db.Replies
+            .Where(reply => reply.ReviewId == review.Id)
+            .OrderBy(reply => reply.Ordinal)
+            .ToListAsync(cancellationToken);
         Dictionary<string, List<string>> labels = Labels(options);
         Dictionary<string, StoredAnswer> saved = answers.ToDictionary(answer => answer.FenceId, StringComparer.Ordinal);
 
@@ -96,7 +100,7 @@ internal static class ReviewReader
             new RevisionId(review.RevisionId),
             Status(review.Status),
             review.Feedback,
-            annotations.Select(ToAnnotation).ToArray(),
+            annotations.Select(annotation => ToAnnotation(annotation, replies)).ToArray(),
             fences
                 .Where(fence => saved.ContainsKey(fence.FenceId))
                 .Select(fence => ToAnswer(saved[fence.FenceId]))
@@ -138,8 +142,13 @@ internal static class ReviewReader
     private static DecisionAnswer ToAnswer(StoredAnswer answer) =>
         new(answer.FenceId, answer.Answer, answer.IsOther);
 
-    private static Annotation ToAnnotation(StoredAnnotation annotation) =>
-        new(
+    private static Annotation ToAnnotation(StoredAnnotation annotation, List<StoredReply> replies)
+    {
+        AnnotationReply[] lines = replies
+            .Where(reply => reply.AnnotationId == annotation.AnnotationId)
+            .Select(reply => new AnnotationReply(reply.ReplyId, reply.Text, reply.CreatedAt))
+            .ToArray();
+        return new Annotation(
             annotation.AnnotationId,
             annotation.Kind switch
             {
@@ -155,7 +164,17 @@ internal static class ReviewReader
             annotation.BlockOrdinal,
             annotation.StartOffset,
             annotation.EndOffset,
-            annotation.CreatedAt);
+            annotation.CreatedAt,
+            annotation.BlockKey,
+            annotation.Author switch
+            {
+                "operator" => AnnotationAuthor.Operator,
+                "agent" => AnnotationAuthor.Agent,
+                _ => throw new InvalidOperationException("Annotation author was not recognised."),
+            },
+            annotation.Accepted,
+            lines.Length == 0 ? null : lines);
+    }
 
     private static ReviewStatus Status(string status) => status switch
     {

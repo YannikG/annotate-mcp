@@ -36,7 +36,11 @@
 
 **Review.** A decision record for exactly one revision.
 
-**Annotation.** A deletion, replacement, insertion, or comment anchored to plan offsets.
+**Annotation.** A deletion, replacement, insertion, or comment. A deletion, replacement, or insertion is anchored to a selected phrase. A person comments on a selected phrase. A block comment comes from an agent.
+
+**Reply.** A direct child of one annotation. A reply has no children.
+
+**Agent note.** A block comment from an agent. A person toggles it between accept and not accept while the review is pending.
 
 **Annotation draft.** An annotation saved against a pending review. It survives navigation but has not been submitted as feedback.
 

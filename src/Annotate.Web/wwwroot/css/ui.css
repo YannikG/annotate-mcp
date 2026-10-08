@@ -70,6 +70,13 @@
     cursor: not-allowed;
 }
 
+.btn-sm {
+    min-height: 0;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+}
+
 .btn-icon {
     width: 40px;
     padding: 0;
