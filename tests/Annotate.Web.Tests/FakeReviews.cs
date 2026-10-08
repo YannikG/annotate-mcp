@@ -74,14 +74,25 @@ internal sealed class FakeReviews : IReviews
 
     public List<RequestedChanges> DraftSaves { get; } = [];
 
-    public Task<SaveAnnotationsOutcome> SaveAnnotationsAsync(ReviewId id, IReadOnlyList<Annotation> annotations, CancellationToken cancellationToken)
+    public bool HoldSave { get; set; }
+
+    public TaskCompletionSource ReleaseSave { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    public async Task<SaveAnnotationsOutcome> SaveAnnotationsAsync(ReviewId id, IReadOnlyList<Annotation> annotations, CancellationToken cancellationToken)
     {
         DraftSaves.Add(new RequestedChanges(id.Value, annotations.ToArray()));
+        if (HoldSave)
+        {
+            await ReleaseSave.Task;
+        }
+
         if (DraftOutcome is SaveAnnotationsOutcome.Done && Review?.Id == id)
         {
-            Review = Review with { Annotations = annotations.ToArray() };
+            Annotation[] kept = Review.Annotations.Where(item => item.BlockKey is not null).ToArray();
+            Review = Review with { Annotations = [.. annotations, .. kept] };
         }
-        return Task.FromResult(DraftOutcome);
+
+        return DraftOutcome;
     }
 
     public Task<SaveAnswerOutcome> SaveAnswerAsync(

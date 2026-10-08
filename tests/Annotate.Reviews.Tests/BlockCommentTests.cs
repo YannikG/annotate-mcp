@@ -106,6 +106,17 @@ public sealed class BlockCommentTests
         Assert.IsType<SaveAnnotationsOutcome.Done>(await reviews.AddReplyAsync(id, acceptedId, "Because.", CancellationToken.None));
         Assert.IsType<SaveAnnotationsOutcome.Done>(await reviews.AddReplyAsync(id, phrase.Id, "On the quote.", CancellationToken.None));
 
+        Annotation[] full = new Annotation[100];
+        for (int index = 0; index < full.Length; index++)
+        {
+            full[index] = new("p" + index, AnnotationKind.Deletion, "x", null, null, 0, 1, 2, "t");
+        }
+
+        Assert.Equal(
+            "Too many annotations.",
+            Refused(await reviews.SaveAnnotationsAsync(id, full, CancellationToken.None)));
+        Assert.Equal(3, (await Required(reviews, id)).Annotations.Count);
+
         Assert.IsType<DecideOutcome.Done>(await reviews.RequestChangesAsync(id, [phrase], CancellationToken.None));
         ReviewDetail changed = await Required(reviews, id);
         Assert.Equal(Feedback, changed.Feedback);

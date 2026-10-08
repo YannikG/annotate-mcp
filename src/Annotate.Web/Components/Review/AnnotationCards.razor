@@ -5,7 +5,7 @@
 <ol class="stack" data-annotations>
     @foreach (Annotation annotation in Annotations)
     {
-        <AnnotationThread Annotation="annotation" Pending="Pending" ReviewId="@ReviewId" BlockName="@Name(annotation.BlockKey)" Changed="Changed" Ask="Ask" />
+        <AnnotationThread @key="annotation.Id" Annotation="annotation" Pending="Pending" ReviewId="@ReviewId" BlockName="@Name(annotation.BlockKey)" Changed="Changed" Ask="Ask" RemovePhrase="RemovePhrase" />
     }
 </ol>
 
@@ -24,6 +24,9 @@
 
     [Parameter]
     public EventCallback<AnnotationConfirm> Ask { get; set; }
+
+    [Parameter]
+    public EventCallback<string> RemovePhrase { get; set; }
 
     [Parameter]
     public IReadOnlyDictionary<string, string>? BlockNames { get; set; }

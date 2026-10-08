@@ -58,7 +58,7 @@
                 </SidePanel>
             }
             <SidePanel PanelKey="annotations" Title="Annotations" ShowTrigger="false">
-                <AnnotationCards Annotations="Model.Annotations" Pending="Model.Pending" ReviewId="@Model.ReviewId" BlockNames="Model.BlockNames" Changed="Changed" Ask="AskAnnotation" />
+                <AnnotationCards Annotations="Model.Annotations" Pending="Model.Pending" ReviewId="@Model.ReviewId" BlockNames="Model.BlockNames" Changed="Changed" Ask="AskAnnotation" RemovePhrase="RemovePhrase" />
             </SidePanel>
         </Panels>
         <ChildContent>
@@ -202,6 +202,9 @@
 
     [Parameter]
     public EventCallback Changed { get; set; }
+
+    [Parameter]
+    public EventCallback<string> RemovePhrase { get; set; }
 
     private int dropCount;
 

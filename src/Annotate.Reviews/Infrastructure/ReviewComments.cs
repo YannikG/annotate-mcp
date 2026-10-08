@@ -31,6 +31,12 @@ internal static class ReviewComments
             return "Comment was rejected.";
         }
 
+        int count = await db.Annotations.CountAsync(item => item.ReviewId == review.Id, cancellationToken);
+        if (count >= ReviewLimits.MaxAnnotations)
+        {
+            return "Too many annotations.";
+        }
+
         int ordinal = await NextOrdinal(db, review.Id, cancellationToken);
         db.Annotations.Add(new StoredAnnotation(
             review.Id,
@@ -150,7 +156,7 @@ internal static class ReviewComments
         return null;
     }
 
-    public static async Task ReplacePhrase(
+    public static async Task<string?> ReplacePhrase(
         ReviewsDbContext db,
         string reviewId,
         List<AnnotationDraft> drafts,
@@ -160,6 +166,11 @@ internal static class ReviewComments
             .Where(item => item.ReviewId == reviewId && item.BlockKey != null)
             .Select(item => item.AnnotationId)
             .ToListAsync(cancellationToken);
+        if (drafts.Count + blockIds.Count > ReviewLimits.MaxAnnotations)
+        {
+            return "Too many annotations.";
+        }
+
         HashSet<string> keep = new(drafts.Select(draft => draft.Id), StringComparer.Ordinal);
         foreach (string blockId in blockIds)
         {
@@ -193,6 +204,8 @@ internal static class ReviewComments
                 draft.Comment,
                 draft.CreatedAt));
         }
+
+        return null;
     }
 
     public static async Task DropUnaccepted(ReviewsDbContext db, string reviewId, CancellationToken cancellationToken)

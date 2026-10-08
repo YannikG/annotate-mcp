@@ -1,3 +1,4 @@
+using Annotate.Markdown;
 using Annotate.Plans.Application;
 
 namespace Annotate.Web.Components.Review;
@@ -12,7 +13,7 @@ public static class BlockNames
             int start = Math.Clamp(block.Start, 0, revision.Markdown.Length);
             int end = Math.Clamp(block.End, start, revision.Markdown.Length);
             string line = revision.Markdown[start..end].Split('\n', 2)[0].Trim();
-            string name = line.TrimStart('#').Trim();
+            string name = block.Kind == BlockKind.Heading ? line.TrimStart('#').Trim() : line;
             if (name.Length > 0)
             {
                 names[block.Key] = name;

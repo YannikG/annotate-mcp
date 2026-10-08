@@ -216,7 +216,12 @@ internal sealed partial class ReviewService(
             return new DecideOutcome.Refused("Nothing to send.");
         }
 
-        await ReviewComments.ReplacePhrase(db, review.Id, drafts, cancellationToken);
+        string? stored = await ReviewComments.ReplacePhrase(db, review.Id, drafts, cancellationToken);
+        if (stored is not null)
+        {
+            return new DecideOutcome.Refused(stored);
+        }
+
         await ReviewComments.DropUnaccepted(db, review.Id, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         List<AnnotationDraft> kept = await ReviewComments.LoadDrafts(db, review.Id, cancellationToken);
@@ -267,7 +272,8 @@ internal sealed partial class ReviewService(
         List<AnnotationDraft> drafts = annotations.Select(ToDraft).ToList();
         string? rejected = AnnotationRules.Reject(drafts);
         if (rejected is not null) return new SaveAnnotationsOutcome.Refused(rejected);
-        await ReviewComments.ReplacePhrase(db, review.Id, drafts, cancellationToken);
+        rejected = await ReviewComments.ReplacePhrase(db, review.Id, drafts, cancellationToken);
+        if (rejected is not null) return new SaveAnnotationsOutcome.Refused(rejected);
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return new SaveAnnotationsOutcome.Done();

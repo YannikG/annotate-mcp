@@ -19,18 +19,35 @@ public partial class ReviewPage
         }
 
         ReviewDetail? review;
-        try
+        while (true)
         {
-            review = await Reviews.FindAsync(new ReviewId(Id), CancellationToken.None);
-        }
-        catch (Exception)
-        {
-            return;
-        }
+            int version = draftVersion;
+            await draftSave;
+            if (version != draftVersion)
+            {
+                continue;
+            }
 
-        if (review is null)
-        {
-            return;
+            try
+            {
+                review = await Reviews.FindAsync(new ReviewId(Id), CancellationToken.None);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
+            if (review is null)
+            {
+                return;
+            }
+
+            if (version != draftVersion)
+            {
+                continue;
+            }
+
+            break;
         }
 
         drafts.Clear();
@@ -42,8 +59,17 @@ public partial class ReviewPage
 
         status = review.Status;
         pending = review.Status == ReviewStatus.Pending;
-        prompts.Load(review.Prompts, review.Answers);
         Publish();
+    }
+
+    private async Task RemovePhrase(string annotationId)
+    {
+        if (drafts.RemoveAll(item => item.Id == annotationId) == 0)
+        {
+            return;
+        }
+
+        await PersistDrafts();
     }
 
     private Task<bool> RetryDraft() => PersistDrafts();

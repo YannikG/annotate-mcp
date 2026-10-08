@@ -95,6 +95,9 @@
     public EventCallback<AnnotationConfirm> Ask { get; set; }
 
     [Parameter]
+    public EventCallback<string> RemovePhrase { get; set; }
+
+    [Parameter]
     public string? BlockName { get; set; }
 
     private string reply = "";
@@ -151,7 +154,10 @@
         await Changed.InvokeAsync();
     }
 
-    private Task DeleteAnnotation() => Remove(reviews => reviews.DeleteAnnotationAsync(new ReviewId(ReviewId!), Annotation.Id, CancellationToken.None));
+    private Task DeleteAnnotation() =>
+        Annotation.BlockKey is null
+            ? RemovePhrase.InvokeAsync(Annotation.Id)
+            : Remove(reviews => reviews.DeleteAnnotationAsync(new ReviewId(ReviewId!), Annotation.Id, CancellationToken.None));
 
     private Task DeleteReply(string replyId) =>
         Remove(reviews => reviews.DeleteReplyAsync(new ReviewId(ReviewId!), Annotation.Id, replyId, CancellationToken.None));
