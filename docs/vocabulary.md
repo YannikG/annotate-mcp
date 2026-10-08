@@ -36,7 +36,7 @@
 
 **Review.** A decision record for exactly one revision.
 
-**Annotation.** A deletion, replacement, insertion, or comment. A deletion, replacement, or insertion is anchored to a selected phrase. A comment may be anchored to a phrase or to a whole block.
+**Annotation.** A deletion, replacement, insertion, or comment. A deletion, replacement, or insertion is anchored to a selected phrase. A person comments on a selected phrase. A block comment comes from an agent.
 
 **Reply.** A direct child of one annotation. A reply has no children.
 

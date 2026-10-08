@@ -96,8 +96,9 @@ public sealed class BlockCommentTests
         Assert.IsType<SaveAnnotationsOutcome.Done>(await reviews.SaveAnnotationsAsync(id, [phrase], CancellationToken.None));
         Assert.IsType<SaveAnnotationsOutcome.Done>(
             await reviews.AddBlockCommentAsync(id, Agent("block-a", "Use a file."), CancellationToken.None));
-        Assert.IsType<SaveAnnotationsOutcome.Done>(
-            await reviews.AddBlockCommentAsync(id, new BlockComment("block-a", "I agree.", AnnotationAuthor.Operator), CancellationToken.None));
+        Assert.Equal(
+            "A block comment comes from an agent.",
+            Refused(await reviews.AddBlockCommentAsync(id, new BlockComment("block-a", "I agree.", AnnotationAuthor.Operator), CancellationToken.None)));
         Assert.IsType<SaveAnnotationsOutcome.Done>(
             await reviews.AddBlockCommentAsync(id, Agent("block-b", "Drop me."), CancellationToken.None));
         string acceptedId = (await Required(reviews, id)).Annotations.Single(item => item.Comment == "Use a file.").Id;
@@ -109,7 +110,7 @@ public sealed class BlockCommentTests
         ReviewDetail changed = await Required(reviews, id);
         Assert.Equal(Feedback, changed.Feedback);
         Assert.DoesNotContain("Drop me.", changed.Feedback, StringComparison.Ordinal);
-        Assert.Equal(3, changed.Annotations.Count);
+        Assert.Equal(2, changed.Annotations.Count);
         Assert.DoesNotContain(changed.Annotations, item => item.Comment == "Drop me.");
 
         ReviewId onlyAgent = await Opened(reviews, "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
@@ -137,9 +138,6 @@ public sealed class BlockCommentTests
         Use a file.
         from: agent
         - Because.
-        3. blockId: block-a
-        I agree.
-        from: operator
 
         Please revise the plan to address this feedback and submit the revised draft again.
         """;

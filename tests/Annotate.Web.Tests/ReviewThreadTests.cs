@@ -63,8 +63,16 @@ public sealed class ReviewThreadTests
             parameters.Add(component => component.Id, "review-1"));
         page.WaitForAssertion(() => Assert.NotNull(page.Find("[data-bot]")));
 
+        Assert.Empty(page.FindAll("[data-block-comment]"));
+        Assert.Equal("Storage", page.Find("[data-block-key]").TextContent.Trim());
+        Assert.Equal("block-1", page.Find("[data-block-key]").GetAttribute("data-block-key"));
         Assert.NotNull(page.Find("[data-block-note='true']"));
         Assert.Equal("false", page.Find("[data-accept]").GetAttribute("data-accepted"));
+        Assert.Equal("false", page.Find("[data-accept]").GetAttribute("aria-pressed"));
+        Assert.True(page.Find("[data-reply-actions]").HasAttribute("hidden"));
+        Assert.All(
+            page.FindAll("[data-annotations] .btn"),
+            button => Assert.Contains("btn-sm", button.ClassList));
         Assert.True(page.Find("[data-approve]").HasAttribute("disabled"));
 
         await page.Find("[data-request-changes]").ClickAsync();
@@ -73,15 +81,18 @@ public sealed class ReviewThreadTests
         Assert.Empty(reviews.Changes);
 
         await page.Find("[data-reply-draft]").InputAsync("Because.");
+        Assert.False(page.Find("[data-reply-actions]").HasAttribute("hidden"));
         await page.Find("[data-add-reply]").ClickAsync();
         page.WaitForAssertion(() => Assert.Equal("Because.", page.Find("[data-reply-text]").TextContent));
         await page.Find("[data-delete-reply]").ClickAsync();
         Assert.Contains("Delete this reply?", page.Markup, StringComparison.Ordinal);
+        Assert.Empty(page.FindAll("[data-side-panel] [role='dialog']"));
         await page.Find("[data-confirm]").ClickAsync();
         page.WaitForAssertion(() => Assert.Empty(page.FindAll("[data-reply]")));
 
         await page.Find("[data-accept]").ClickAsync();
         page.WaitForAssertion(() => Assert.Equal("true", page.Find("[data-accept]").GetAttribute("data-accepted")));
+        Assert.Equal("true", page.Find("[data-accept]").GetAttribute("aria-pressed"));
         await page.Find("[data-request-changes]").ClickAsync();
         Assert.Single(reviews.Changes);
         Assert.DoesNotContain("will be dropped", page.Markup, StringComparison.Ordinal);

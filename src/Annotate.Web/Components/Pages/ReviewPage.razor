@@ -405,7 +405,8 @@ else if (model is not null)
             projectName,
             revision.PlanId.Value,
             Id,
-            revision.Blocks.Select(block => block.Key).ToArray());
+            revision.Blocks.Select(block => block.Key).ToArray(),
+            BlockNames.Of(revision));
     }
 
     private Task OnAnnotate(string key) => OnKey(new ReviewKey(key, ""));

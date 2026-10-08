@@ -58,7 +58,7 @@
                 </SidePanel>
             }
             <SidePanel PanelKey="annotations" Title="Annotations" ShowTrigger="false">
-                <AnnotationCards Annotations="Model.Annotations" Pending="Model.Pending" ReviewId="@Model.ReviewId" Changed="Changed" />
+                <AnnotationCards Annotations="Model.Annotations" Pending="Model.Pending" ReviewId="@Model.ReviewId" BlockNames="Model.BlockNames" Changed="Changed" Ask="AskAnnotation" />
             </SidePanel>
         </Panels>
         <ChildContent>
@@ -136,6 +136,10 @@
     @if (dropCount > 0)
     {
         <ConfirmDialog Title="Request changes?" Body="@DropBody" ConfirmLabel="Request changes" ConfirmVariant="ButtonVariant.Destructive" Confirm="ConfirmRequest" Cancel="CancelRequest" />
+    }
+    @if (annotationConfirm is not null)
+    {
+        <ConfirmDialog Title="@annotationConfirm.Title" Body="@annotationConfirm.Body" ConfirmLabel="Delete" ConfirmVariant="ButtonVariant.Destructive" Confirm="ConfirmAnnotation" Cancel="CancelAnnotation" />
     }
 </div>
 
@@ -221,6 +225,22 @@
     }
 
     private void CancelRequest() => dropCount = 0;
+
+    private AnnotationConfirm? annotationConfirm;
+
+    private void AskAnnotation(AnnotationConfirm confirm) => annotationConfirm = confirm;
+
+    private void CancelAnnotation() => annotationConfirm = null;
+
+    private async Task ConfirmAnnotation()
+    {
+        Func<Task>? action = annotationConfirm?.Action;
+        annotationConfirm = null;
+        if (action is not null)
+        {
+            await action();
+        }
+    }
 
     private string noteDraft = "";
 

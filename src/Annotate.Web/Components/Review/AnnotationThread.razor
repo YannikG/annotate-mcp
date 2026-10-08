@@ -1,16 +1,40 @@
 @inject IServiceProvider Services
 
 <li data-kind="@Annotation.Kind" data-author="@Annotation.Author">
-    <span class="kind">@Annotation.Kind</span>
-    @if (Annotation.Author == AnnotationAuthor.Agent)
+    <div class="comment-head">
+        <span class="comment-author">
+            @if (Annotation.Author == AnnotationAuthor.Agent)
+            {
+                <span class="block-bot" data-bot aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="2"></rect><path d="M12 8V4"></path><circle cx="9" cy="13" r="1"></circle><circle cx="15" cy="13" r="1"></circle></svg></span>
+                <span>Agent</span>
+            }
+            else
+            {
+                <span class="kind">@Annotation.Kind</span>
+            }
+        </span>
+        @if (Annotation.Author == AnnotationAuthor.Agent)
+        {
+            <Button Variant="ButtonVariant.Quiet" class="btn-sm comment-accept" data-accept data-accepted="@(Annotation.Accepted == true ? "true" : "false")" aria-pressed="@(Annotation.Accepted == true ? "true" : "false")" Disabled="@(!Pending)" OnClick="ToggleAccepted"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>@(Annotation.Accepted == true ? "Accepted" : "Accept")</Button>
+        }
+        @if (Pending)
+        {
+            <Button Variant="ButtonVariant.Quiet" class="btn-sm icon-delete" data-delete-annotation aria-label="Delete annotation" title="Delete annotation" OnClick="AskAnnotation"><TrashIcon /></Button>
+        }
+    </div>
+    @if (!string.IsNullOrEmpty(Annotation.Comment))
     {
-        <span class="block-bot" data-bot aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="2"></rect><path d="M12 8V4"></path><circle cx="9" cy="13" r="1"></circle><circle cx="15" cy="13" r="1"></circle></svg></span>
+        <p class="comment-body" data-comment>@Annotation.Comment</p>
+    }
+    else
+    {
+        <span data-comment></span>
     }
     @if (!string.IsNullOrEmpty(Annotation.BlockKey))
     {
-        <span class="detail"><span class="detail-label">Block</span><span data-block-key>@Annotation.BlockKey</span></span>
+        <span class="comment-key" data-block-key="@Annotation.BlockKey" title="@Annotation.BlockKey">@(BlockName ?? Annotation.BlockKey)</span>
     }
-    <span data-text>@Annotation.Text</span>
+    <span data-text>@(Annotation.BlockKey is null ? Annotation.Text : null)</span>
     @if (string.IsNullOrEmpty(Annotation.Replacement))
     {
         <span data-replacement></span>
@@ -22,28 +46,6 @@
             <span data-replacement>@Annotation.Replacement</span>
         </span>
     }
-    @if (string.IsNullOrEmpty(Annotation.Comment))
-    {
-        <span data-comment></span>
-    }
-    else
-    {
-        <span class="detail">
-            <span class="detail-label">Comment</span>
-            <span data-comment>@Annotation.Comment</span>
-        </span>
-    }
-    @if (Annotation.Author == AnnotationAuthor.Agent)
-    {
-        @if (Pending)
-        {
-            <Button data-accept data-accepted="@(Annotation.Accepted == true ? "true" : "false")" OnClick="Toggle">@(Annotation.Accepted == true ? "Accepted" : "Accept")</Button>
-        }
-        else
-        {
-            <span data-accepted="@(Annotation.Accepted == true ? "true" : "false")">@(Annotation.Accepted == true ? "Accepted" : "Not accepted")</span>
-        }
-    }
     @if (Annotation.Replies is { Count: > 0 })
     {
         <ol data-replies>
@@ -53,7 +55,7 @@
                     <span data-reply-text>@reply.Text</span>
                     @if (Pending)
                     {
-                        <Button Variant="ButtonVariant.Quiet" data-delete-reply OnClick="() => AskReply(reply.Id)">Delete</Button>
+                        <Button Variant="ButtonVariant.Quiet" class="btn-sm icon-delete" data-delete-reply aria-label="Delete reply" title="Delete reply" OnClick="() => AskReply(reply.Id)"><TrashIcon /></Button>
                     }
                 </li>
             }
@@ -61,11 +63,13 @@
     }
     @if (Pending)
     {
-        <div>
-            <textarea data-reply-draft aria-label="Reply" @oninput="OnReply">@reply</textarea>
-            <Button data-add-reply OnClick="SendReply">Reply</Button>
+        <div class="reply-composer">
+            <textarea @key="composer" class="reply-draft" rows="1" data-reply-draft aria-label="Reply" placeholder="Reply" @onfocus="OpenReply" @oninput="OnReply"></textarea>
+            <div class="reply-actions" data-reply-actions hidden="@(!replyOpen)">
+                <Button Variant="ButtonVariant.Quiet" class="btn-sm" OnClick="CancelReply">Cancel</Button>
+                <Button Variant="ButtonVariant.Primary" class="btn-sm" data-add-reply Disabled="@(reply.Trim().Length == 0)" OnClick="SendReply">Reply</Button>
+            </div>
         </div>
-        <Button Variant="ButtonVariant.Destructive" data-delete-annotation OnClick="AskAnnotation">Delete</Button>
     }
     <span class="visually-hidden" data-block>@Annotation.BlockOrdinal</span>
     <span class="visually-hidden" data-start>@Annotation.StartOffset</span>
@@ -73,10 +77,6 @@
     <span class="visually-hidden" data-id>@Annotation.Id</span>
     <span class="visually-hidden" data-created>@Annotation.CreatedAt</span>
 </li>
-@if (confirm is not null)
-{
-    <ConfirmDialog Title="@confirm.Title" Body="@confirm.Body" ConfirmLabel="Delete" ConfirmVariant="ButtonVariant.Destructive" Confirm="Confirm" Cancel="Cancel" />
-}
 
 @code {
     [Parameter, EditorRequired]
@@ -91,37 +91,48 @@
     [Parameter]
     public EventCallback Changed { get; set; }
 
+    [Parameter]
+    public EventCallback<AnnotationConfirm> Ask { get; set; }
+
+    [Parameter]
+    public string? BlockName { get; set; }
+
     private string reply = "";
 
-    private void OnReply(ChangeEventArgs change) => reply = change.Value?.ToString() ?? "";
+    private bool replyOpen;
 
-    private PendingConfirm? confirm;
+    private int composer;
 
-    private void AskAnnotation() =>
-        confirm = new("Delete this annotation?", "This removes the annotation and its replies.", DeleteAnnotation);
-
-    private void AskReply(string replyId) =>
-        confirm = new("Delete this reply?", "This removes the reply.", () => DeleteReply(replyId));
-
-    private void Cancel() => confirm = null;
-
-    private async Task Confirm()
+    private void OnReply(ChangeEventArgs change)
     {
-        Func<Task>? action = confirm?.Action;
-        confirm = null;
-        if (action is not null)
-        {
-            await action();
-        }
+        reply = change.Value?.ToString() ?? "";
+        replyOpen = true;
     }
 
-    private async Task Toggle()
+    private void OpenReply() => replyOpen = true;
+
+    private void CancelReply()
+    {
+        reply = "";
+        replyOpen = false;
+        composer++;
+    }
+
+    private Task AskAnnotation() =>
+        Ask.InvokeAsync(new("Delete this annotation?", "This removes the annotation and its replies.", DeleteAnnotation));
+
+    private Task AskReply(string replyId) =>
+        Ask.InvokeAsync(new("Delete this reply?", "This removes the reply.", () => DeleteReply(replyId)));
+
+    private Task ToggleAccepted() => SetAccepted(Annotation.Accepted != true);
+
+    private async Task SetAccepted(bool accepted)
     {
         if (ReviewId is null || Reviews() is not IReviews reviews) return;
         SaveAnnotationsOutcome outcome = await reviews.SetAcceptedAsync(
             new ReviewId(ReviewId),
             Annotation.Id,
-            Annotation.Accepted != true,
+            accepted,
             CancellationToken.None);
         if (outcome is SaveAnnotationsOutcome.Done)
         {
@@ -135,6 +146,8 @@
         SaveAnnotationsOutcome outcome = await reviews.AddReplyAsync(new ReviewId(ReviewId), Annotation.Id, reply, CancellationToken.None);
         if (outcome is not SaveAnnotationsOutcome.Done) return;
         reply = "";
+        replyOpen = false;
+        composer++;
         await Changed.InvokeAsync();
     }
 
@@ -154,6 +167,4 @@
             await Changed.InvokeAsync();
         }
     }
-
-    private sealed record PendingConfirm(string Title, string Body, Func<Task> Action);
 }

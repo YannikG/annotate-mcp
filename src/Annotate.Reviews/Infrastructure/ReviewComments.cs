@@ -14,6 +14,11 @@ internal static class ReviewComments
         TimeProvider time,
         CancellationToken cancellationToken)
     {
+        if (comment.Author != AnnotationAuthor.Agent)
+        {
+            return "A block comment comes from an agent.";
+        }
+
         string blockKey = comment.BlockKey.Trim();
         string body = comment.Comment.Trim();
         if (blockKey.Length is < 1 or > ReviewLimits.Id)
@@ -27,7 +32,6 @@ internal static class ReviewComments
         }
 
         int ordinal = await NextOrdinal(db, review.Id, cancellationToken);
-        bool agent = comment.Author == AnnotationAuthor.Agent;
         db.Annotations.Add(new StoredAnnotation(
             review.Id,
             ordinal,
@@ -41,8 +45,8 @@ internal static class ReviewComments
             body,
             Stamp(time),
             blockKey,
-            agent ? "agent" : "operator",
-            agent ? false : null));
+            "agent",
+            false));
         return null;
     }
 
