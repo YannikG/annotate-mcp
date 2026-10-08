@@ -16,5 +16,7 @@ internal sealed class ReviewsDbContext(DbContextOptions<ReviewsDbContext> option
 
     public DbSet<StoredAnnotation> Annotations => Set<StoredAnnotation>();
 
+    public DbSet<StoredReply> Replies => Set<StoredReply>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder) => ReviewsModel.Configure(modelBuilder);
 }

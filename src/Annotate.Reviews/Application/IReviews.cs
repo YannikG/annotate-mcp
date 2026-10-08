@@ -26,6 +26,34 @@ public interface IReviews
         IReadOnlyList<Annotation> annotations,
         CancellationToken cancellationToken);
 
+    Task<SaveAnnotationsOutcome> AddBlockCommentAsync(
+        ReviewId id,
+        BlockComment comment,
+        CancellationToken cancellationToken);
+
+    Task<SaveAnnotationsOutcome> AddReplyAsync(
+        ReviewId id,
+        string annotationId,
+        string text,
+        CancellationToken cancellationToken);
+
+    Task<SaveAnnotationsOutcome> DeleteAnnotationAsync(
+        ReviewId id,
+        string annotationId,
+        CancellationToken cancellationToken);
+
+    Task<SaveAnnotationsOutcome> DeleteReplyAsync(
+        ReviewId id,
+        string annotationId,
+        string replyId,
+        CancellationToken cancellationToken);
+
+    Task<SaveAnnotationsOutcome> SetAcceptedAsync(
+        ReviewId id,
+        string annotationId,
+        bool accepted,
+        CancellationToken cancellationToken);
+
     Task<SaveAnswerOutcome> SaveAnswerAsync(
         ReviewId id,
         DecisionAnswer answer,

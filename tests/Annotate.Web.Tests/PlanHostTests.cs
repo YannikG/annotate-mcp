@@ -303,6 +303,7 @@ public sealed class PlanHostTests
         Assert.Contains("\"waitSeconds\"", postedBody, StringComparison.Ordinal);
         Assert.Contains("\"name\":\"list_revision_blocks\"", postedBody, StringComparison.Ordinal);
         Assert.Contains("\"name\":\"read_revision_block\"", postedBody, StringComparison.Ordinal);
+        Assert.Contains("\"name\":\"annotate_block\"", postedBody, StringComparison.Ordinal);
     }
 
     [Fact]

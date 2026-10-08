@@ -55,7 +55,7 @@ public sealed class AnnotationDraftTests
     }
 
     [Fact]
-    public async Task InvalidDraftLeavesSavedAnnotationsIntactAndApprovalClearsDrafts()
+    public async Task InvalidDraftLeavesSavedAnnotationsIntactAndApprovalWaitsUntilTheyAreGone()
     {
         await using OpenReviews open = await OpenReviews.Open();
         await using ServiceProvider host = open.Reviews();
@@ -67,6 +67,11 @@ public sealed class AnnotationDraftTests
         Assert.IsType<SaveAnnotationsOutcome.Refused>(await reviews.SaveAnnotationsAsync(id, [annotation with { Replacement = null }], CancellationToken.None));
         Assert.Equal([annotation], (await reviews.FindAsync(id, CancellationToken.None))!.Annotations);
         Assert.IsType<SaveAnnotationsOutcome.Refused>(await reviews.SaveAnnotationsAsync(new ReviewId("missing"), [], CancellationToken.None));
+        Assert.Equal(
+            "Annotations must be removed before approval.",
+            Assert.IsType<DecideOutcome.Refused>(await reviews.ApproveAsync(id, CancellationToken.None)).Error);
+        Assert.Equal([annotation], (await reviews.FindAsync(id, CancellationToken.None))!.Annotations);
+        Assert.IsType<SaveAnnotationsOutcome.Done>(await reviews.SaveAnnotationsAsync(id, [], CancellationToken.None));
         Assert.IsType<DecideOutcome.Done>(await reviews.ApproveAsync(id, CancellationToken.None));
         Assert.Empty((await reviews.FindAsync(id, CancellationToken.None))!.Annotations);
         Assert.IsType<SaveAnnotationsOutcome.Refused>(await reviews.SaveAnnotationsAsync(id, [annotation], CancellationToken.None));

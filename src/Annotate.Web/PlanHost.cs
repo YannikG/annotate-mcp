@@ -146,6 +146,46 @@ internal sealed class PlanHost(
         return block is null ? Error(BlockWasNotFound) : Slice(revision.Markdown, block.Start, block.End);
     }
 
+    public async Task<string> AnnotateBlockAsync(
+        string reviewId,
+        string blockId,
+        string comment,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(reviewId))
+        {
+            return Error(ReviewWasNotFound);
+        }
+
+        ReviewDetail? review = await reviews.FindAsync(new ReviewId(reviewId.Trim()), cancellationToken);
+        if (review is null)
+        {
+            return Error(ReviewWasNotFound);
+        }
+
+        if (review.Status != ReviewStatus.Pending)
+        {
+            return Error("Review already decided.");
+        }
+
+        RevisionDetail? revision = await plans.RevisionAsync(
+            new Annotate.Plans.Application.RevisionId(review.RevisionId.Value),
+            cancellationToken);
+        RevisionBlock? block = revision is null || string.IsNullOrWhiteSpace(blockId)
+            ? null
+            : revision.Blocks.FirstOrDefault(item => item.Key.Equals(blockId.Trim(), StringComparison.Ordinal));
+        if (block is null)
+        {
+            return Error(BlockWasNotFound);
+        }
+
+        SaveAnnotationsOutcome outcome = await reviews.AddBlockCommentAsync(
+            review.Id,
+            new BlockComment(block.Key, comment ?? "", AnnotationAuthor.Agent),
+            cancellationToken);
+        return outcome is SaveAnnotationsOutcome.Refused refused ? Error(refused.Error) : "Block comment saved.";
+    }
+
     public string Guide() => PlanMarkdown.Guide;
 
     private async Task<RevisionDetail?> Revision(string revisionId, CancellationToken cancellationToken)
@@ -275,6 +315,8 @@ internal sealed class PlanHost(
     private const string RevisionWasNotFound = "Revision was not found.";
 
     private const string BlockWasNotFound = "Block was not found.";
+
+    private const string ReviewWasNotFound = "Review was not found.";
 
     private static string Error(string message) =>
         message.StartsWith("Error: ", StringComparison.Ordinal) ? message : "Error: " + message;

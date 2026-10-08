@@ -7,6 +7,13 @@ public partial class ReviewPage
     private Task draftSave = Task.CompletedTask;
     private int draftVersion;
     private string? draftSaveStatus;
+    private readonly List<Annotation> threads = [];
+
+    private Task RefreshAnnotations()
+    {
+        loadedId = null;
+        return OnParametersSetAsync();
+    }
 
     private Task<bool> RetryDraft() => PersistDrafts();
 

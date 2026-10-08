@@ -52,7 +52,9 @@ An archived plan leaves the active lists: pending, changes requested, recently a
 
 `reviews(id, revision_id unique, status pending|approved|changes_requested, decided_at, feedback, created_at)`
 
-`annotations(review_id, ordinal, kind, block_ordinal, start_offset, end_offset, text, replacement, comment, created_at)`
+`annotations(review_id, ordinal, kind, block_ordinal, start_offset, end_offset, text, replacement, comment, created_at, block_key nullable, author operator|agent, accepted nullable)`
+
+`annotation_replies(review_id, annotation_id, ordinal, reply_id, text, created_at)` — one level under an annotation. Deleting the annotation deletes its replies.
 
 `decision_answers(review_id, fence_id, answer, is_other)`
 
@@ -66,7 +68,9 @@ A block key is reused when the content hash and section path are the same. Other
 
 `IPlans`: `SubmitAsync`, `ProjectsAsync`, `ArchivedProjectsAsync`, `ProjectAsync`, `RenameProjectAsync`, `ArchiveProjectAsync`, `RestoreProjectAsync`, `DeleteProjectAsync`, `PlansAsync`, `ArchivedPlansAsync`, `ArchivePlanAsync`, `RestorePlanAsync`, `DeletePlanAsync`, `PlanAsync`, `RevisionAsync`, `RevisionActivityAsync`, `DiffAsync`.
 
-`IReviews`: `OpenAsync`, `FindAsync`, `ForRevisionAsync`, `PendingAsync`, `ListAsync`, `WaitAsync`, `ApproveAsync`, `RequestChangesAsync`, `SaveAnnotationsAsync`, `SaveAnswerAsync`, `RemoveRevisionsAsync`.
+`IReviews`: `OpenAsync`, `FindAsync`, `ForRevisionAsync`, `PendingAsync`, `ListAsync`, `WaitAsync`, `ApproveAsync`, `RequestChangesAsync`, `SaveAnnotationsAsync`, `AddBlockCommentAsync`, `AddReplyAsync`, `DeleteAnnotationAsync`, `DeleteReplyAsync`, `SetAcceptedAsync`, `SaveAnswerAsync`, `RemoveRevisionsAsync`.
+
+`annotate_block` takes a review id, a block id, and a comment. The review must be pending and the block id must be a stored block key on that review's revision. Otherwise it returns an error and writes nothing. The note is a comment on that whole block, from an agent, and it starts not accepted. A missing review returns `Error: Review was not found.` A block id that is not on that revision returns `Error: Block was not found.` A blank comment returns `Error: Comment was rejected.` A decided review returns `Error: Review already decided.`
 
 `list_revision_blocks` lists the stored blocks of one revision, separated by a blank line. Each entry is `blockId` (the stable block key), `kind`, and the first line of that block's markdown, trimmed. `read_revision_block` takes a revision id and a block id and returns that block's markdown. A missing revision returns `Error: Revision was not found.` A review id is not a revision id, so passing one returns that same error. A block id that is not on that revision returns `Error: Block was not found.`
 
@@ -96,7 +100,7 @@ Editor controls use labelled groups, native buttons, a custom revision dropdown,
 
 A plan with a pending review shows a Continue review action in its header that leads to the review page, so a pending plan is never a dead end. A plan whose selected revision is approved shows a Download report action in the toolbar that saves the standalone HTML report; a download failure surfaces as an alert. Plan, revision, and review pages show the story link and acceptance criteria above the document. Their right panel lists saved annotations using the same cards as reviews. Side panels use distinct neutral card surfaces, rounded corners, and soft shadows. Headers and empty states have no inset background; annotation cards separate the kind badge, quote, and suggested text. Revision block changes sit below the document in a panel that starts collapsed.
 
-Review annotations also appear in the plan text: deletion and replacement strike out the original, replacement and insertion show the suggested text, and comments highlight their quote. While a note dialog is open, its quote stays marked in the text as the annotation it will become, so the selection is never lost; the mark appears only in the document, not in the annotations panel, until the note is saved. Drafts update immediately and are saved in SQLite as annotations are added, typed, or undone. They survive navigation and reloads while the review stays pending, without feedback or a decision notification. Requesting changes submits the saved annotations once; approval discards draft annotations. Undo removes their marks and saved draft records. A save failure retains the local edit and offers a retry. Saved annotations appear on the review, plan, and revision pages. Proposed text has no source offsets and is excluded from selections; the original text keeps its Markdown offsets.
+Review annotations also appear in the plan text: deletion and replacement strike out the original, replacement and insertion show the suggested text, and comments highlight their quote. While a note dialog is open, its quote stays marked in the text as the annotation it will become, so the selection is never lost; the mark appears only in the document, not in the annotations panel, until the note is saved. Drafts update immediately and are saved in SQLite as annotations are added, typed, or undone. They survive navigation and reloads while the review stays pending, without feedback or a decision notification. Requesting changes submits the saved annotations once. Unaccepted agent notes and their replies are dropped, and the confirm dialog asks first when any would be dropped. Approve stays unavailable while any annotation remains. An accepted agent note still blocks approval. Undo removes their marks and saved draft records. A save failure retains the local edit and offers a retry. Saved annotations appear on the review, plan, and revision pages. Proposed text has no source offsets and is excluded from selections; the original text keeps its Markdown offsets.
 
 Downloaded HTML reports embed their own CSS for typography, context, code, tables, responsive layout, and printing. They do not depend on the running app or an external stylesheet.
 

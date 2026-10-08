@@ -301,6 +301,32 @@
     font-size: var(--text-base);
 }
 
+.block-noted {
+    background: var(--mark-bg);
+    border-radius: 2px;
+}
+
+.block-bot {
+    display: inline-flex;
+    width: var(--space-4);
+    height: var(--space-4);
+    margin-right: var(--space-2);
+    color: var(--nav-accent);
+    vertical-align: middle;
+}
+
+.block-bot svg {
+    width: var(--space-4);
+    height: var(--space-4);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+}
+
+.block-comment {
+    margin-left: var(--space-2);
+}
+
 .annotate-popover [data-note-quote] {
     margin: 0;
     padding-left: 0.55rem;

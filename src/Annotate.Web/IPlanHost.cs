@@ -12,6 +12,8 @@ public interface IPlanHost
 
     Task<string> ReadBlockAsync(string revisionId, string blockId, CancellationToken cancellationToken);
 
+    Task<string> AnnotateBlockAsync(string reviewId, string blockId, string comment, CancellationToken cancellationToken);
+
     string Guide();
 }
 

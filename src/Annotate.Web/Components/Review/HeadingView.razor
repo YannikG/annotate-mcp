@@ -1,26 +1,26 @@
 @if (Level <= 1)
 {
-    <h1 class="copy-heading" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h1>
+    <h1 class="@HeadingClass" data-block-note="@NotedAttribute" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" /><HeadingNotes ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h1>
 }
 else if (Level == 2)
 {
-    <h2 class="copy-heading" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h2>
+    <h2 class="@HeadingClass" data-block-note="@NotedAttribute" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" /><HeadingNotes ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h2>
 }
 else if (Level == 3)
 {
-    <h3 class="copy-heading" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h3>
+    <h3 class="@HeadingClass" data-block-note="@NotedAttribute" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" /><HeadingNotes ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h3>
 }
 else if (Level == 4)
 {
-    <h4 class="copy-heading" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h4>
+    <h4 class="@HeadingClass" data-block-note="@NotedAttribute" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" /><HeadingNotes ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h4>
 }
 else if (Level == 5)
 {
-    <h5 class="copy-heading" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h5>
+    <h5 class="@HeadingClass" data-block-note="@NotedAttribute" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" /><HeadingNotes ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h5>
 }
 else
 {
-    <h6 class="copy-heading" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h6>
+    <h6 class="@HeadingClass" data-block-note="@NotedAttribute" id="b-@Ordinal"><CopyAnchor ReviewId="@ReviewId" BlockKey="@BlockKey" /><HeadingNotes ReviewId="@ReviewId" BlockKey="@BlockKey" />@ChildContent</h6>
 }
 
 @code {
@@ -38,4 +38,14 @@ else
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter(Name = "Annotations")]
+    public IReadOnlyList<Annotation>? Annotations { get; set; }
+
+    private bool Noted =>
+        !string.IsNullOrEmpty(BlockKey) && Annotations?.Any(item => item.BlockKey == BlockKey) == true;
+
+    private string? NotedAttribute => Noted ? "true" : null;
+
+    private string HeadingClass => Noted ? "copy-heading block-noted" : "copy-heading";
 }

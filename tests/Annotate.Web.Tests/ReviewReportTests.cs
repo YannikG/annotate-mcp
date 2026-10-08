@@ -68,6 +68,8 @@ public sealed class ReviewReportTests
         await session.Page.Find("[data-review]").KeyDownAsync("c");
         await session.Page.Find("[data-note]").InputAsync("secret-note");
         await session.Page.Find("[data-save-note]").ClickAsync();
+        Assert.True(session.Page.Find("[data-download]").HasAttribute("disabled"));
+        await session.Page.Find("[data-review]").KeyDownAsync("u");
         session.Report.Gate = new TaskCompletionSource<ReportDownload>();
 
         Task click = session.Page.Find("[data-download]").ClickAsync();

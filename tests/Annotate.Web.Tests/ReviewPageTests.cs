@@ -286,6 +286,8 @@ public sealed class ReviewPageTests
         page.WaitForAssertion(() => Assert.NotNull(page.Find("[data-review]")));
 
         await page.Find("[data-review]").KeyDownAsync("d");
+        Assert.True(page.Find("[data-approve]").HasAttribute("disabled"));
+        await page.Find("[data-review]").KeyDownAsync("u");
         await page.Find("[data-approve]").ClickAsync();
 
         Assert.Equal(["review-1"], reviews.Approved);
@@ -366,7 +368,7 @@ public sealed class ReviewPageTests
         Assert.Equal("Deletion", page.Find("[data-annotations] li").GetAttribute("data-kind"));
         Assert.Equal("Storage", page.Find("[data-text]").TextContent);
         Assert.Equal("Pending", page.Find("[data-status]").TextContent);
-        Assert.False(page.Find("[data-approve]").HasAttribute("disabled"));
+        Assert.True(page.Find("[data-approve]").HasAttribute("disabled"));
         Assert.False(page.Find("[data-request-changes]").HasAttribute("disabled"));
         Assert.Equal("false", page.Find("[data-countdown]").GetAttribute("data-running"));
         await page.Find("[data-review]").KeyDownAsync("d");

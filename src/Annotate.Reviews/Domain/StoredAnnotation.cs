@@ -22,6 +22,12 @@ internal sealed class StoredAnnotation
 
     public string? Comment { get; private set; }
 
+    public string? BlockKey { get; private set; }
+
+    public string Author { get; private set; }
+
+    public bool? Accepted { get; private set; }
+
     public string CreatedAt { get; private set; }
 
     public StoredAnnotation(
@@ -35,7 +41,10 @@ internal sealed class StoredAnnotation
         string text,
         string? replacement,
         string? comment,
-        string createdAt)
+        string createdAt,
+        string? blockKey = null,
+        string author = "operator",
+        bool? accepted = null)
     {
         ReviewId = reviewId;
         Ordinal = ordinal;
@@ -48,7 +57,12 @@ internal sealed class StoredAnnotation
         Replacement = replacement;
         Comment = comment;
         CreatedAt = createdAt;
+        BlockKey = blockKey;
+        Author = author;
+        Accepted = accepted;
     }
+
+    public void Accept(bool accepted) => Accepted = accepted;
 
     private StoredAnnotation()
     {
@@ -57,5 +71,6 @@ internal sealed class StoredAnnotation
         Kind = "";
         Text = "";
         CreatedAt = "";
+        Author = "operator";
     }
 }

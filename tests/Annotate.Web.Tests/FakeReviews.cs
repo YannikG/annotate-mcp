@@ -93,6 +93,123 @@ internal sealed class FakeReviews : IReviews
         return Task.FromResult(SaveOutcome);
     }
 
+    public Task<SaveAnnotationsOutcome> AddBlockCommentAsync(
+        ReviewId id,
+        BlockComment comment,
+        CancellationToken cancellationToken)
+    {
+        if (Review?.Id != id || string.IsNullOrWhiteSpace(comment.BlockKey) || string.IsNullOrWhiteSpace(comment.Comment))
+        {
+            return Task.FromResult<SaveAnnotationsOutcome>(new SaveAnnotationsOutcome.Refused("Comment was rejected."));
+        }
+
+        bool agent = comment.Author == AnnotationAuthor.Agent;
+        Annotation note = new(
+            Guid.NewGuid().ToString(),
+            AnnotationKind.Comment,
+            comment.Comment.Trim(),
+            comment.Comment.Trim(),
+            null,
+            0,
+            0,
+            0,
+            DateTimeOffset.UtcNow.ToString("u"),
+            comment.BlockKey.Trim(),
+            comment.Author,
+            agent ? false : null);
+        Review = Review with { Annotations = [.. Review.Annotations, note] };
+        return Task.FromResult<SaveAnnotationsOutcome>(new SaveAnnotationsOutcome.Done());
+    }
+
+    public Task<SaveAnnotationsOutcome> AddReplyAsync(
+        ReviewId id,
+        string annotationId,
+        string text,
+        CancellationToken cancellationToken)
+    {
+        if (Review?.Id != id || string.IsNullOrWhiteSpace(text))
+        {
+            return Task.FromResult<SaveAnnotationsOutcome>(new SaveAnnotationsOutcome.Refused("Reply was rejected."));
+        }
+
+        Annotation? annotation = Review.Annotations.FirstOrDefault(item => item.Id == annotationId);
+        if (annotation is null)
+        {
+            return Task.FromResult<SaveAnnotationsOutcome>(new SaveAnnotationsOutcome.Refused("Annotation was not found."));
+        }
+
+        AnnotationReply reply = new(Guid.NewGuid().ToString(), text.Trim(), DateTimeOffset.UtcNow.ToString("u"));
+        AnnotationReply[] replies = annotation.Replies is null ? [reply] : [.. annotation.Replies, reply];
+        Review = Review with
+        {
+            Annotations = Review.Annotations.Select(item => item.Id == annotationId ? item with { Replies = replies } : item).ToArray(),
+        };
+        return Task.FromResult<SaveAnnotationsOutcome>(new SaveAnnotationsOutcome.Done());
+    }
+
+    public Task<SaveAnnotationsOutcome> DeleteAnnotationAsync(
+        ReviewId id,
+        string annotationId,
+        CancellationToken cancellationToken)
+    {
+        if (Review?.Id == id)
+        {
+            Review = Review with { Annotations = Review.Annotations.Where(item => item.Id != annotationId).ToArray() };
+        }
+
+        return Task.FromResult<SaveAnnotationsOutcome>(new SaveAnnotationsOutcome.Done());
+    }
+
+    public Task<SaveAnnotationsOutcome> DeleteReplyAsync(
+        ReviewId id,
+        string annotationId,
+        string replyId,
+        CancellationToken cancellationToken)
+    {
+        if (Review?.Id == id)
+        {
+            Review = Review with
+            {
+                Annotations = Review.Annotations.Select(item =>
+                {
+                    if (item.Id != annotationId || item.Replies is null)
+                    {
+                        return item;
+                    }
+
+                    AnnotationReply[] replies = item.Replies.Where(reply => reply.Id != replyId).ToArray();
+                    return item with { Replies = replies.Length == 0 ? null : replies };
+                }).ToArray(),
+            };
+        }
+
+        return Task.FromResult<SaveAnnotationsOutcome>(new SaveAnnotationsOutcome.Done());
+    }
+
+    public Task<SaveAnnotationsOutcome> SetAcceptedAsync(
+        ReviewId id,
+        string annotationId,
+        bool accepted,
+        CancellationToken cancellationToken)
+    {
+        if (Review?.Id != id)
+        {
+            return Task.FromResult<SaveAnnotationsOutcome>(new SaveAnnotationsOutcome.Refused("Review was not found."));
+        }
+
+        Annotation? annotation = Review.Annotations.FirstOrDefault(item => item.Id == annotationId);
+        if (annotation is null || annotation.Author != AnnotationAuthor.Agent)
+        {
+            return Task.FromResult<SaveAnnotationsOutcome>(new SaveAnnotationsOutcome.Refused("Accept applies to an agent note."));
+        }
+
+        Review = Review with
+        {
+            Annotations = Review.Annotations.Select(item => item.Id == annotationId ? item with { Accepted = accepted } : item).ToArray(),
+        };
+        return Task.FromResult<SaveAnnotationsOutcome>(new SaveAnnotationsOutcome.Done());
+    }
+
     public Task RemoveRevisionsAsync(IReadOnlyList<string> revisionIds, CancellationToken cancellationToken)
     {
         RemovedRevisions.AddRange(revisionIds);

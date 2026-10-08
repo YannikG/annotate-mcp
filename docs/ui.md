@@ -111,6 +111,10 @@ Reports are standalone HTML and cannot link `tokens.css`, so `PlanReportStyles` 
 | Theme switch | The shared navigation |
 | Copy a plan or review id | The editor toolbar copy menu |
 | Copy a heading's review id and block key | The copy icon at the start of that heading |
+| Comment on a whole block | Comment at the start of that heading, while the review is pending |
+| Reply to an annotation | The reply field on that annotation card |
+| Delete an annotation or a reply | Delete on that card, after the confirm dialog |
+| Accept an agent note | Accept on that agent note |
 
 The heading copy icon shows the tooltip “Copies the review id and this block id” before the click. Keyboard shortcuts (`d`, `r`, `s`, `c`) trigger the same popup commands; they are not separate UI.
 

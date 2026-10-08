@@ -21,7 +21,7 @@ else if (failed)
 }
 else if (model is not null)
 {
-    <ReviewView Model="model" Key="OnKey" Approve="Approve" Download="Download" DismissReport="DismissReport" AutoCloseChanged="OnAutoClose" RequestChanges="RequestChanges" OpenPrompt="OpenPrompt" CloseDialog="CloseDialog" PreviousPrompt="PreviousPrompt" NextPrompt="NextPrompt" FinishPrompt="FinishPrompt" SaveNote="SaveNote" EditNote="EditNote" CancelNote="CancelNote" RetryDraft="RetryDraft" Select="OnSelect" Annotate="OnAnnotate" />
+    <ReviewView Model="model" Key="OnKey" Approve="Approve" Download="Download" DismissReport="DismissReport" AutoCloseChanged="OnAutoClose" RequestChanges="RequestChanges" OpenPrompt="OpenPrompt" CloseDialog="CloseDialog" PreviousPrompt="PreviousPrompt" NextPrompt="NextPrompt" FinishPrompt="FinishPrompt" SaveNote="SaveNote" EditNote="EditNote" CancelNote="CancelNote" RetryDraft="RetryDraft" Select="OnSelect" Annotate="OnAnnotate" Changed="RefreshAnnotations" />
 }
 
 @code {
@@ -75,6 +75,7 @@ else if (model is not null)
 
         loadedId = Id;
         drafts.Clear();
+        threads.Clear();
         prompts.Load([], []);
         countdown.Cancel();
         notFound = false;
@@ -125,7 +126,10 @@ else if (model is not null)
             return;
         }
 
-        drafts.AddRange(review.Annotations);
+        foreach (Annotation annotation in review.Annotations)
+        {
+            (annotation.BlockKey is null ? drafts : threads).Add(annotation);
+        }
         draftSaveStatus = review.Status == ReviewStatus.Pending && drafts.Count > 0 ? "Draft saved" : null;
         status = review.Status;
         pending = review.Status == ReviewStatus.Pending;
@@ -265,7 +269,7 @@ else if (model is not null)
 
     private async Task Approve()
     {
-        if (!pending || prompts.Any)
+        if (!pending || prompts.Any || drafts.Count > 0 || threads.Count > 0)
         {
             return;
         }
@@ -279,7 +283,7 @@ else if (model is not null)
 
     private async Task Download()
     {
-        if (!pending || prompts.Any || revision is null)
+        if (!pending || prompts.Any || drafts.Count > 0 || threads.Count > 0 || revision is null)
         {
             return;
         }
@@ -339,6 +343,7 @@ else if (model is not null)
             status = decidedStatus;
             pending = false;
             drafts.Clear();
+            threads.Clear();
             notePrompt = null;
             toolbar = null;
             draftSaveStatus = null;
@@ -374,12 +379,12 @@ else if (model is not null)
         model = new ReviewViewModel(
             StatusTone.Label(status),
             pending,
-            pending && !prompts.Any,
+            pending && !prompts.Any && drafts.Count == 0 && threads.Count == 0,
             revision.Summary,
             revision.StoryUrl,
             revision.AcceptanceCriteria,
             revision.Markdown,
-            drafts.ToArray(),
+            drafts.Concat(threads).ToArray(),
             countdown.Count,
             countdown.Running,
             prompts.Rows(),

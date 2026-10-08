@@ -8,16 +8,17 @@ sources:
 
 ## Must
 
-- Create annotations only from the selection popup (or its keyboard shortcuts).
+- Create phrase annotations only from the selection popup (or its keyboard shortcuts).
 - Support deletion, replacement, insertion, and comment kinds.
 - Persist annotation drafts for a pending review across navigation and reload.
 - Submit saved drafts as feedback when the reviewer requests changes.
-- Discard draft annotations when the reviewer approves.
+- Keep Approve unavailable while any annotation remains.
 
 ## Must not
 
 - Allow annotating acceptance criteria or story context above the plan.
-- Keep draft annotations after approve.
+- Approve a review that still has annotations.
+- Discard annotations as part of approval.
 - Treat proposed replacement or insertion text as a new selection anchor.
 
 ## Flow

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Annotate.Reviews.Infrastructure;
 
-internal sealed class ReviewService(
+internal sealed partial class ReviewService(
     IDbContextFactory<ReviewsDbContext> contexts,
     TimeProvider time,
     ReviewSignals signals) : IReviews
@@ -166,7 +166,12 @@ internal sealed class ReviewService(
             return new DecideOutcome.Refused("A plan with a decision fence cannot be approved.");
         }
 
-        await db.Annotations.Where(annotation => annotation.ReviewId == review.Id).ExecuteDeleteAsync(cancellationToken);
+        bool annotated = await db.Annotations.AnyAsync(annotation => annotation.ReviewId == review.Id, cancellationToken);
+        if (annotated)
+        {
+            return new DecideOutcome.Refused("Annotations must be removed before approval.");
+        }
+
         review.Approve(time.GetUtcNow());
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
@@ -203,11 +208,18 @@ internal sealed class ReviewService(
             .Where(fence => fence.ReviewId == review.Id)
             .OrderBy(fence => fence.Ordinal)
             .ToListAsync(cancellationToken);
-        if (drafts.Count == 0 && fences.Count == 0)
+        bool blocks = await db.Annotations.AnyAsync(
+            annotation => annotation.ReviewId == review.Id && annotation.BlockKey != null,
+            cancellationToken);
+        if (drafts.Count == 0 && fences.Count == 0 && !blocks)
         {
             return new DecideOutcome.Refused("Nothing to send.");
         }
 
+        await ReviewComments.ReplacePhrase(db, review.Id, drafts, cancellationToken);
+        await ReviewComments.DropUnaccepted(db, review.Id, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+        List<AnnotationDraft> kept = await ReviewComments.LoadDrafts(db, review.Id, cancellationToken);
         List<StoredAnswer> answers = await db.Answers
             .Where(answer => answer.ReviewId == review.Id)
             .ToListAsync(cancellationToken);
@@ -216,9 +228,8 @@ internal sealed class ReviewService(
             answer => answer.Answer,
             StringComparer.Ordinal);
         review.RequestChanges(
-            FeedbackText.Write(drafts, fences.Select(fence => fence.FenceId).ToArray(), saved),
+            FeedbackText.Write(kept, fences.Select(fence => fence.FenceId).ToArray(), saved),
             time.GetUtcNow());
-        await ReplaceAnnotations(db, review.Id, drafts, cancellationToken);
 
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
@@ -256,33 +267,10 @@ internal sealed class ReviewService(
         List<AnnotationDraft> drafts = annotations.Select(ToDraft).ToList();
         string? rejected = AnnotationRules.Reject(drafts);
         if (rejected is not null) return new SaveAnnotationsOutcome.Refused(rejected);
-        await ReplaceAnnotations(db, review.Id, drafts, cancellationToken);
+        await ReviewComments.ReplacePhrase(db, review.Id, drafts, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return new SaveAnnotationsOutcome.Done();
-    }
-
-    private static async Task ReplaceAnnotations(
-        ReviewsDbContext db, string reviewId, List<AnnotationDraft> drafts, CancellationToken cancellationToken)
-    {
-        await db.Annotations.Where(annotation => annotation.ReviewId == reviewId).ExecuteDeleteAsync(cancellationToken);
-        for (int ordinal = 0; ordinal < drafts.Count; ordinal++)
-        {
-            AnnotationDraft draft = drafts[ordinal];
-            db.Annotations.Add(new StoredAnnotation(
-                reviewId,
-                ordinal,
-                draft.Id,
-                draft.Kind,
-                draft.BlockOrdinal,
-                draft.StartOffset,
-                draft.EndOffset,
-                draft.Text,
-                draft.Replacement,
-                draft.Comment,
-                draft.CreatedAt));
-        }
-
     }
 
     public async Task<SaveAnswerOutcome> SaveAnswerAsync(

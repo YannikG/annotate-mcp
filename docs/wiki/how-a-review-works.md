@@ -6,7 +6,7 @@ A review belongs to exactly one revision. You decide on that snapshot; the next 
 
 **Pending.** Work is waiting on you. Keep editing annotation drafts, answer decision fences, then approve or request changes.
 
-**Approved.** You are done with this revision. Draft annotations on that review are discarded.
+**Approved.** You are done with this revision. Approve is available only when the review has no annotations left.
 
 **Changes requested.** Your saved annotations become feedback the agent sees next. Expect a new revision when it comes back.
 

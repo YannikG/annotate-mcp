@@ -48,6 +48,24 @@ internal static class FeedbackText
 
     private static string Entry(AnnotationDraft annotation)
     {
+        StringBuilder builder = new(annotation.BlockKey is null ? Phrase(annotation) : Block(annotation));
+        builder.Append('\n').Append("from: ").Append(annotation.Author);
+        if (annotation.Replies is { Count: > 0 })
+        {
+            foreach (string reply in annotation.Replies)
+            {
+                builder.Append('\n').Append("- ").Append(reply);
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    private static string Block(AnnotationDraft annotation) =>
+        "blockId: " + annotation.BlockKey + "\n" + (annotation.Comment ?? "");
+
+    private static string Phrase(AnnotationDraft annotation)
+    {
         string tail = "{id=\"" + EscapeToken(annotation.Id) + "\" by=\"user\" at=\"" + EscapeToken(annotation.CreatedAt) + "\"}";
         return annotation.Kind switch
         {

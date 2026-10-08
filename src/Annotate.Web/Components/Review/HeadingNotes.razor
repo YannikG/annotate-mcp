@@ -1,0 +1,82 @@
+@inject IServiceProvider Services
+
+@if (Bot)
+{
+    <span class="block-bot" data-bot aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="2"></rect><path d="M12 8V4"></path><circle cx="9" cy="13" r="1"></circle><circle cx="15" cy="13" r="1"></circle></svg></span>
+}
+@if (CanComment)
+{
+    <button type="button" class="btn btn-quiet block-comment" data-block-comment @onclick="Open">Comment</button>
+}
+@if (open)
+{
+    <form class="annotate-popover" data-block-note-dialog role="dialog" aria-modal="true" aria-labelledby="@titleId" @onsubmit="Save" @onsubmit:preventDefault="true">
+        <h2 id="@titleId">Comment on this block</h2>
+        <textarea data-block-note aria-label="Comment" @bind="text"></textarea>
+        <div class="dialog-actions">
+            <Button data-cancel OnClick="Close">Cancel</Button>
+            <Button Variant="ButtonVariant.Primary" Type="submit" data-save-block-note>Save</Button>
+        </div>
+    </form>
+}
+
+@code {
+    [Parameter]
+    public string? ReviewId { get; set; }
+
+    [Parameter]
+    public string? BlockKey { get; set; }
+
+    [CascadingParameter(Name = "Annotations")]
+    public IReadOnlyList<Annotation>? Annotations { get; set; }
+
+    [CascadingParameter(Name = "AnnotationsChanged")]
+    public EventCallback Changed { get; set; }
+
+    private bool open;
+
+    private string text = "";
+
+    private readonly string titleId = "block-note-" + Guid.NewGuid().ToString("N");
+
+    private bool Bot =>
+        !string.IsNullOrEmpty(BlockKey)
+        && Annotations?.Any(item => item.BlockKey == BlockKey && item.Author == AnnotationAuthor.Agent) == true;
+
+    private bool CanComment =>
+        Changed.HasDelegate && !string.IsNullOrEmpty(ReviewId) && !string.IsNullOrEmpty(BlockKey);
+
+    private void Open() => open = true;
+
+    private void Close()
+    {
+        open = false;
+        text = "";
+    }
+
+    private async Task Save()
+    {
+        if (ReviewId is null || BlockKey is null || text.Trim().Length == 0)
+        {
+            return;
+        }
+
+        IReviews? reviews = Services.GetService(typeof(IReviews)) as IReviews;
+        if (reviews is null)
+        {
+            return;
+        }
+
+        SaveAnnotationsOutcome outcome = await reviews.AddBlockCommentAsync(
+            new ReviewId(ReviewId),
+            new BlockComment(BlockKey, text, AnnotationAuthor.Operator),
+            CancellationToken.None);
+        if (outcome is not SaveAnnotationsOutcome.Done)
+        {
+            return;
+        }
+
+        Close();
+        await Changed.InvokeAsync();
+    }
+}
