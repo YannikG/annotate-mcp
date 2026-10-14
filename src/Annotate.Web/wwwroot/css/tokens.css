@@ -25,6 +25,8 @@
     --danger: #d1242f;
     --danger-ink: #a40e26;
     --danger-soft: #ffebe9;
+    --lock: #bc4c00;
+    --lock-ink: #bc4c00;
     --success: #1a7f37;
     --success-ink: #116329;
     --success-soft: #dafbe1;
@@ -144,6 +146,8 @@
     --danger: #f85149;
     --danger-ink: #ffa198;
     --danger-soft: #3d1214;
+    --lock: #f0883e;
+    --lock-ink: #f0883e;
     --success: #3fb950;
     --success-ink: #7ee787;
     --success-soft: #12261e;

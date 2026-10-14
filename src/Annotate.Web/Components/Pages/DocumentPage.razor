@@ -1,4 +1,5 @@
 @page "/documents/{Id}"
+@page "/documents/{Id}/revisions/{RevisionId}"
 @inject IDocuments Documents
 @inject IPlans Plans
 @inject IReviews Reviews
@@ -12,11 +13,13 @@
 }
 else if (model is not null)
 {
-    <DocumentView Model="model" Archive="Archive" Restore="Restore" Delete="Delete" MarkReadOnly="MarkReadOnly" ClearReadOnly="ClearReadOnly" />
+    <DocumentView Model="model" Archive="Archive" Restore="Restore" Delete="Delete" MarkReadOnly="MarkReadOnly" ClearReadOnly="ClearReadOnly" RevisionChanged="Choose" />
 }
 
 @code {
     [Parameter] public string Id { get; set; } = "";
+
+    [Parameter] public string? RevisionId { get; set; }
 
     private DocumentViewModel? model;
     private bool missing;
@@ -34,26 +37,36 @@ else if (model is not null)
         }
 
         missing = false;
-        PlanRevision? newest = document.Revisions.OrderBy(item => item.Number).LastOrDefault();
+        List<RevisionRow> revisions = [];
         string? pendingReviewId = null;
-        RevisionViewModel? selected = null;
-        if (newest is not null)
+        foreach (PlanRevision revision in document.Revisions.OrderBy(item => item.Number))
         {
             ReviewDetail? review = await Reviews.ForRevisionAsync(
-                new Annotate.Reviews.Application.RevisionId(newest.RevisionId.Value),
+                new Annotate.Reviews.Application.RevisionId(revision.RevisionId.Value),
                 CancellationToken.None);
             if (review?.Status == ReviewStatus.Pending)
             {
                 pendingReviewId = review.Id.Value;
             }
 
-            DocumentRevisionDetail? revision = await Documents.RevisionAsync(newest.RevisionId, CancellationToken.None);
-            if (revision is not null)
-            {
-                selected = RevisionBody.FromDocument(revision, review?.Annotations, review?.Id.Value);
-            }
+            revisions.Add(new RevisionRow(
+                revision.RevisionId.Value,
+                revision.Number,
+                revision.CreatedAt.ToString("u"),
+                StatusTone.Label(review?.Status),
+                revision.Attribution?.Agent,
+                revision.Attribution?.Model));
         }
 
+        string? newestId = revisions.Count == 0 ? null : revisions[^1].RevisionId;
+        if (!string.IsNullOrEmpty(RevisionId) && revisions.All(revision => revision.RevisionId != RevisionId))
+        {
+            model = null;
+            missing = true;
+            return;
+        }
+
+        string? selectedId = string.IsNullOrEmpty(RevisionId) ? newestId : RevisionId;
         ProjectSummary? project = await Plans.ProjectAsync(document.ProjectId, CancellationToken.None);
         model = new DocumentViewModel(
             document.Title,
@@ -62,7 +75,43 @@ else if (model is not null)
             pendingReviewId,
             document.ReadOnly,
             document.Archived,
-            selected);
+            revisions,
+            selectedId,
+            await Body(selectedId));
+    }
+
+    private async Task Choose(string revisionId)
+    {
+        if (model is null || revisionId.Length == 0)
+        {
+            return;
+        }
+
+        model = model with { SelectedId = revisionId, Selected = await Body(revisionId) };
+        string? newestId = model.Revisions.Count == 0 ? null : model.Revisions[^1].RevisionId;
+        string target = revisionId == newestId ? $"/documents/{Id}" : $"/documents/{Id}/revisions/{revisionId}";
+        Navigation.NavigateTo(target);
+    }
+
+    private async Task<RevisionViewModel?> Body(string? revisionId)
+    {
+        if (revisionId is null)
+        {
+            return null;
+        }
+
+        DocumentRevisionDetail? revision = await Documents.RevisionAsync(
+            new Annotate.Plans.Application.RevisionId(revisionId),
+            CancellationToken.None);
+        if (revision is null)
+        {
+            return null;
+        }
+
+        ReviewDetail? review = await Reviews.ForRevisionAsync(
+            new Annotate.Reviews.Application.RevisionId(revisionId),
+            CancellationToken.None);
+        return RevisionBody.FromDocument(revision, review?.Annotations, review?.Id.Value);
     }
 
     private async Task Archive() => await Change(await Documents.ArchiveAsync(new DocumentId(Id), CancellationToken.None));

@@ -90,7 +90,11 @@
                 <CascadingValue Value="DecisionContext">
                     <CascadingValue Name="Annotations" Value="Model.Marks">
                         <CascadingValue Name="AnnotationsChanged" Value="AnnotationRefresh">
-                            <PlanText Markdown="@Model.Markdown" ReviewId="@Model.ReviewId" BlockKeys="@Model.BlockKeys" />
+                            <CascadingValue Name="LockedKeys" Value="Model.LockedKeys">
+                                <CascadingValue Name="ToggleLock" Value="LockToggle">
+                                    <PlanText Markdown="@Model.Markdown" ReviewId="@Model.ReviewId" BlockKeys="@Model.BlockKeys" />
+                                </CascadingValue>
+                            </CascadingValue>
                         </CascadingValue>
                     </CascadingValue>
                 </CascadingValue>
@@ -108,20 +112,6 @@
                 </section>
             }
         </div>
-        @if (!Model.AllowApprove && Model.BlockKeys is { Count: > 0 })
-        {
-            <ul class="stack" data-block-locks>
-                @foreach (string key in Model.BlockKeys)
-                {
-                    bool locked = Model.LockedKeys?.Contains(key) == true;
-                    string name = Model.BlockNames is not null && Model.BlockNames.TryGetValue(key, out string? found) && found.Length > 0 ? found : key;
-                    <li>
-                        <span>@name</span>
-                        <Button data-lock-block="@key" OnClick="() => ToggleLock.InvokeAsync(key)">@(locked ? "Unlock" : "Lock")</Button>
-                    </li>
-                }
-            </ul>
-        }
     </div>
         </ChildContent>
     </DocumentBoard>
@@ -231,6 +221,8 @@
 
     [Parameter]
     public EventCallback<string> ToggleLock { get; set; }
+
+    private EventCallback<string> LockToggle => Model.AllowApprove ? default : ToggleLock;
 
     private int dropCount;
 

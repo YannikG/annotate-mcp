@@ -153,7 +153,7 @@ internal sealed class DocumentSubmitter(IDbContextFactory<PlansDbContext> contex
             .Select(item => item.BlockKey)
             .ToListAsync(cancellationToken);
         IReadOnlyList<StoredBlock> next = BlockKeys.Assign(NewId(), request.Markdown, markdown.Blocks, parentBlocks);
-        if (LockBroken(locks, parentBlocks, next))
+        if (SectionLocks.Broken(locks, parentBlocks, next))
         {
             return new DocumentSubmitOutcome.Refused("A locked block was changed.");
         }
@@ -172,27 +172,6 @@ internal sealed class DocumentSubmitter(IDbContextFactory<PlansDbContext> contex
         db.Add(revision);
         await db.SaveChangesAsync(cancellationToken);
         return Created(project.Id, document.Id, revision);
-    }
-
-    private static bool LockBroken(
-        IReadOnlyList<string> locks,
-        IReadOnlyList<StoredBlock> parent,
-        IReadOnlyList<StoredBlock> next)
-    {
-        foreach (string key in locks)
-        {
-            StoredBlock? previous = parent.FirstOrDefault(block => block.BlockKey == key);
-            StoredBlock? current = next.FirstOrDefault(block => block.BlockKey == key);
-            if (previous is null
-                || current is null
-                || previous.ContentHash != current.ContentHash
-                || previous.SectionPath != current.SectionPath)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private static void AddBlocks(

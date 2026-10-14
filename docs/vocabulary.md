@@ -28,7 +28,7 @@
 
 **Plan.** A titled sequence of revisions in one project. It can be archived, which removes it from the active lists until it is restored, or deleted, which removes it and its reviews.
 
-**Document.** A titled sequence of revisions in one project, meant to stay open across many rounds. It can be archived or deleted. It has no approval. Read-only freezes it until a person lifts that. A locked block keeps its text across later revisions.
+**Document.** A titled sequence of revisions in one project, meant to stay open across many rounds. It can be archived or deleted. It has no approval. Read-only freezes it until a person lifts that. Locking a heading keeps that heading and the text under it, until the next heading.
 
 **Revision.** An immutable Markdown snapshot numbered 1..n.
 

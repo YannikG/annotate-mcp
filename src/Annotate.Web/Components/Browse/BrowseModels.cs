@@ -46,6 +46,8 @@ public sealed record DocumentViewModel(
     string? PendingReviewId,
     bool ReadOnly,
     bool Archived,
+    IReadOnlyList<RevisionRow> Revisions,
+    string? SelectedId,
     RevisionViewModel? Selected,
     string? Error = null);
 

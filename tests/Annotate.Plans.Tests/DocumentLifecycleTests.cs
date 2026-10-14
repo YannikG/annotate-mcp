@@ -60,6 +60,58 @@ public sealed class DocumentLifecycleTests
     }
 
     [Fact]
+    public async Task LockingAHeadingKeepsTheTextUnderIt()
+    {
+        await using OpenPlans open = await OpenPlans.Open();
+        await using ServiceProvider host = open.Plans();
+        IDocuments documents = host.GetRequiredService<IDocuments>();
+        string folder = Path.Combine(Path.GetTempPath(), "annotate-" + Guid.NewGuid().ToString("N"));
+        const string markdown = """
+            # Audit
+
+            Intro stays.
+
+            ## Method
+
+            Read the notes.
+
+            ## Next
+
+            Other text.
+            """;
+
+        DocumentSubmitOutcome.Created created = Assert.IsType<DocumentSubmitOutcome.Created>(
+            await documents.SubmitAsync(Request(markdown, folder, null), CancellationToken.None));
+        DocumentRevisionDetail first = Assert.IsType<DocumentRevisionDetail>(
+            await documents.RevisionAsync(created.Revision, CancellationToken.None));
+        string method = first.Blocks.Single(block => Slice(first, block) == "## Method").Key;
+        Assert.IsType<DocumentChange.Done>(
+            await documents.SetBlockLockAsync(created.Document, method, true, CancellationToken.None));
+
+        DocumentRevisionDetail locked = Assert.IsType<DocumentRevisionDetail>(
+            await documents.RevisionAsync(created.Revision, CancellationToken.None));
+        Assert.True(locked.Blocks.Single(block => Slice(locked, block) == "## Method").Locked);
+        Assert.True(locked.Blocks.Single(block => Slice(locked, block) == "Read the notes.").Locked);
+        Assert.False(locked.Blocks.Single(block => Slice(locked, block) == "Intro stays.").Locked);
+        Assert.False(locked.Blocks.Single(block => Slice(locked, block) == "Other text.").Locked);
+
+        DocumentSubmitOutcome changedBody = await documents.SubmitAsync(
+            Request(markdown.Replace("Read the notes.", "Read the site.", StringComparison.Ordinal), folder, created.Revision.Value),
+            CancellationToken.None);
+        Assert.Equal("A locked block was changed.", Assert.IsType<DocumentSubmitOutcome.Refused>(changedBody).Error);
+
+        DocumentSubmitOutcome.Created second = Assert.IsType<DocumentSubmitOutcome.Created>(
+            await documents.SubmitAsync(
+                Request(markdown.Replace("Other text.", "Other words.", StringComparison.Ordinal), folder, created.Revision.Value),
+                CancellationToken.None));
+        DocumentRevisionDetail revised = Assert.IsType<DocumentRevisionDetail>(
+            await documents.RevisionAsync(second.Revision, CancellationToken.None));
+        Assert.Equal("Read the notes.", Slice(revised, revised.Blocks.Single(block => Slice(revised, block) == "Read the notes.")));
+        Assert.True(revised.Blocks.Single(block => Slice(revised, block) == "Read the notes.").Locked);
+        Assert.Equal("Other words.", Slice(revised, revised.Blocks.Single(block => Slice(revised, block) == "Other words.")));
+    }
+
+    [Fact]
     public async Task ArchiveAndProjectDeleteRemoveDocumentRevisions()
     {
         await using OpenPlans open = await OpenPlans.Open();
@@ -89,6 +141,9 @@ public sealed class DocumentLifecycleTests
         Assert.Null(await documents.DocumentAsync(created.Document, CancellationToken.None));
         Assert.Null(await documents.RevisionAsync(created.Revision, CancellationToken.None));
     }
+
+    private static string Slice(DocumentRevisionDetail revision, RevisionBlock block) =>
+        revision.Markdown[block.Start..block.End].Trim();
 
     private static SubmitDocument Request(string markdown, string folder, string? parent) =>
         new(markdown, null, folder, null, parent, "Cursor", "claude-opus-4");

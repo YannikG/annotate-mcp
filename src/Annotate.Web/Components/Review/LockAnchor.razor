@@ -1,0 +1,25 @@
+@if (CanLock)
+{
+    <span class="lock-anchor-wrap @(Locked ? "is-locked" : null)">
+        <Button Variant="ButtonVariant.Quiet" class="lock-anchor" data-lock-block="@BlockKey" aria-label="@(Locked ? "Unlock block" : "Lock block")" tabindex="-1" OnClick="Toggle">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect>@if (Locked) { <path d="M8 11V7a4 4 0 0 1 8 0v4"></path> } else { <path d="M8 11V7a4 4 0 0 1 8 0"></path> }</svg>
+        </Button>
+    </span>
+}
+
+@code {
+    [Parameter]
+    public string? BlockKey { get; set; }
+
+    [CascadingParameter(Name = "LockedKeys")]
+    public IReadOnlySet<string>? LockedKeys { get; set; }
+
+    [CascadingParameter(Name = "ToggleLock")]
+    public EventCallback<string> ToggleLock { get; set; }
+
+    private bool CanLock => ToggleLock.HasDelegate && !string.IsNullOrEmpty(BlockKey);
+
+    private bool Locked => BlockKey is not null && LockedKeys?.Contains(BlockKey) == true;
+
+    private Task Toggle() => string.IsNullOrEmpty(BlockKey) ? Task.CompletedTask : ToggleLock.InvokeAsync(BlockKey);
+}

@@ -3,7 +3,7 @@
     {
         <RevisionView Model="Model.Selected">
             <Header><PlanHeader Model="Model" Archive="Archive" Restore="Restore" Delete="Delete" /></Header>
-            <Controls><RevisionPicker Model="Model" RevisionChanged="RevisionChanged" /></Controls>
+            <Controls><RevisionPicker Revisions="Model.Revisions" SelectedId="@Model.SelectedId" RevisionChanged="RevisionChanged" /></Controls>
             <Actions>
                 @if (Model.Selected.Approved)
                 {

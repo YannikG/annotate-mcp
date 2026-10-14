@@ -219,10 +219,12 @@ internal sealed class DocumentCatalog(IDbContextFactory<PlansDbContext> contexts
             .Where(block => block.RevisionId == revision.Id)
             .OrderBy(block => block.Ordinal)
             .ToListAsync(cancellationToken);
-        HashSet<string> locks = (await db.BlockLocks
-            .Where(item => item.DocumentId == document.Id)
-            .Select(item => item.BlockKey)
-            .ToListAsync(cancellationToken)).ToHashSet(StringComparer.Ordinal);
+        HashSet<string> locks = SectionLocks.Covered(
+            blocks,
+            (await db.BlockLocks
+                .Where(item => item.DocumentId == document.Id)
+                .Select(item => item.BlockKey)
+                .ToListAsync(cancellationToken)).ToHashSet(StringComparer.Ordinal));
         List<StoredBlock> parent = revision.ParentRevisionId is null
             ? []
             : await db.Blocks.Where(block => block.RevisionId == revision.ParentRevisionId).ToListAsync(cancellationToken);

@@ -6,6 +6,6 @@ While you are browsing a project, a side navigation switches between Plans and D
 
 A plan is a titled sequence of revisions. Each revision is an immutable Markdown snapshot. Archive a plan when the work is done so it leaves the active lists; restore it if you need it back. Delete removes the plan and its reviews.
 
-A document is the same kind of revision sequence, kept for longer work such as an audit. You annotate it and request changes. There is no approve action. Read-only freezes the document in the same view as a plan you are not reviewing. A locked block cannot be changed by a later revision or annotated. Archive removes it from the active document list.
+A document is the same kind of revision sequence, kept for longer work such as an audit. Its page has the same revision dropdown as a plan page. The title shows whether that revision already had changes requested. You annotate it and request changes. There is no approve action. Read-only freezes the document in the same view as a plan you are not reviewing. Locking a heading keeps that heading and the text under it, until the next heading. A later revision cannot change that text, and an agent cannot annotate it. Archive removes it from the active document list.
 
 While a plan or document is archived, new revisions from the agent do not land on it. Restore it first, or start a fresh one, if you want more rounds.

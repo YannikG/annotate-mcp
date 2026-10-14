@@ -7,6 +7,10 @@
                 <header class="page-title">
                     <div class="title-block">
                         <h1>@Model.Title</h1>
+                        @if (SelectedRevision is not null)
+                        {
+                            <Badge Tone="@StatusTone.OfLabel(SelectedRevision.Status)" data-status>@SelectedRevision.Status</Badge>
+                        }
                         @if (Model.ReadOnly)
                         {
                             <Badge data-read-only>Read-only</Badge>
@@ -41,6 +45,9 @@
                     </div>
                 </header>
             </Header>
+            <Controls>
+                <RevisionPicker Revisions="Model.Revisions" SelectedId="@Model.SelectedId" RevisionChanged="RevisionChanged" />
+            </Controls>
         </RevisionView>
     }
     @if (Model.Error is not null)
@@ -56,4 +63,8 @@
     [Parameter] public EventCallback Delete { get; set; }
     [Parameter] public EventCallback MarkReadOnly { get; set; }
     [Parameter] public EventCallback ClearReadOnly { get; set; }
+    [Parameter] public EventCallback<string> RevisionChanged { get; set; }
+
+    private RevisionRow? SelectedRevision =>
+        Model.Revisions.FirstOrDefault(revision => revision.RevisionId == Model.SelectedId);
 }
