@@ -264,9 +264,7 @@ else if (model is not null)
         TextSelection chosen = selection!;
         if (Locked(chosen.BlockOrdinal))
         {
-            notice = "This block is locked.";
-            toolbar = null;
-            Publish();
+            RefuseLocked();
             return;
         }
 

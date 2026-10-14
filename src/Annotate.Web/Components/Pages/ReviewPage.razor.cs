@@ -20,9 +20,7 @@ public partial class ReviewPage
         TextSelection? selection = await Selection.ReadAsync();
         if (selection is not null && Locked(selection.BlockOrdinal))
         {
-            notice = "This block is locked.";
-            toolbar = null;
-            Publish();
+            RefuseLocked();
             return;
         }
 
@@ -57,6 +55,14 @@ public partial class ReviewPage
         }
 
         notice = null;
+        Publish();
+    }
+
+    private void RefuseLocked()
+    {
+        notice = null;
+        toolbar = null;
+        Services.GetService<IToast>()?.Show("This block is locked.");
         Publish();
     }
 

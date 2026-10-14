@@ -108,7 +108,7 @@ Reports are standalone HTML and cannot link `tokens.css`, so `PlanReportStyles` 
 | Lock or unlock a heading and the text under it | The end of that heading in the document review. Hover reveals it; a locked heading keeps an orange lock visible. The text stays locked until the next heading |
 | Exit review mode | The review heading, beside the status, in the same place as Continue review on the document page. It opens the plan or the document |
 | Download a plan report | The plan page toolbar, when the selected revision is approved (the review page's Approve and Download is part of submitting a review) |
-| Annotate (delete, replace, insert, comment) | The selection popup beside the quote |
+| Annotate (delete, replace, insert, comment) | The selection popup beside the quote. A locked block shows a toast instead of the popup |
 | Submit review (approve, request changes) | Review actions: right panel on desktop, Actions flyout below 1100px |
 | Answer a decision | The decision dialog, opened from the card's Answer button |
 | Project edit, archive, delete | The project header, on both Plans and Documents |
