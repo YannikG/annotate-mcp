@@ -34,7 +34,8 @@ public sealed record ReviewViewModel(
     IReadOnlyList<string>? BlockKeys = null,
     IReadOnlyDictionary<string, string>? BlockNames = null,
     bool AllowApprove = true,
-    IReadOnlySet<string>? LockedKeys = null)
+    IReadOnlySet<string>? LockedKeys = null,
+    string? ExitHref = null)
 {
     public IReadOnlyList<Annotation> Marks => ActiveNote is null ? Annotations : [.. Annotations, ActiveNote];
 }

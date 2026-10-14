@@ -18,7 +18,7 @@ sources:
 - Refuse `annotate_block` on a locked heading, on the text under it, or on a read-only document.
 - Refuse `await_plan_review` for a document review, and `await_document_review` for a plan review.
 - Show the revision dropdown on the document page, in the editor toolbar, and open an older revision at `/documents/{id}/revisions/{revisionId}`.
-- Show the selected revision's review status beside the document title, including whether changes were requested.
+- Show Exit review mode in the document review heading, beside the status. It opens the document.
 
 ## Must not
 

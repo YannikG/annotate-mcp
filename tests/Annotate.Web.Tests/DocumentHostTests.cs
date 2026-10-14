@@ -59,6 +59,12 @@ public sealed class DocumentHostTests
         string reviewHtml = await client.GetStringAsync("/review/" + reviewId);
         Assert.Contains("data-request-changes", reviewHtml, StringComparison.Ordinal);
         Assert.Contains("data-lock-block", reviewHtml, StringComparison.Ordinal);
+        Assert.Contains("data-exit-review", reviewHtml, StringComparison.Ordinal);
+        Assert.Contains("href=\"/documents/" + documentId + "\"", reviewHtml, StringComparison.Ordinal);
+        int heading = reviewHtml.IndexOf("editor-heading", StringComparison.Ordinal);
+        int exit = reviewHtml.IndexOf("data-exit-review", StringComparison.Ordinal);
+        int toolbar = reviewHtml.IndexOf("data-editor-toolbar", StringComparison.Ordinal);
+        Assert.InRange(exit, heading, toolbar - 1);
         Assert.DoesNotContain("data-approve", reviewHtml, StringComparison.Ordinal);
         Assert.DoesNotContain("data-auto-close", reviewHtml, StringComparison.Ordinal);
         string documentHtml = await client.GetStringAsync("/documents/" + documentId);

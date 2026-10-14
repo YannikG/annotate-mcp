@@ -2,7 +2,13 @@
     <ProjectBreadcrumb ProjectId="@Model.ProjectId" ProjectName="@Model.ProjectName" />
     <header class="editor-heading">
         <h1>@Model.Title</h1>
-        <Badge Tone="@StatusTone.OfLabel(Model.Status)" data-status>@Model.Status</Badge>
+        <div class="page-actions">
+            <Badge Tone="@StatusTone.OfLabel(Model.Status)" data-status>@Model.Status</Badge>
+            @if (Model.ExitHref is not null)
+            {
+                <a class="btn btn-secondary" data-exit-review href="@Model.ExitHref">Exit review mode</a>
+            }
+        </div>
     </header>
     <EditorToolbar Markdown="@Model.Markdown">
         <Trailing>

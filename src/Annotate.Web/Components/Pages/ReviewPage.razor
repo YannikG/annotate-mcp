@@ -451,6 +451,7 @@ else if (model is not null)
             revision.Blocks.Select(block => block.Key).ToArray(),
             BlockNames.Of(revision),
             allowApprove,
-            allowApprove ? null : lockedBlocks);
+            allowApprove ? null : lockedBlocks,
+            allowApprove ? "/plans/" + revision.PlanId.Value : documentId is null ? null : "/documents/" + documentId);
     }
 }

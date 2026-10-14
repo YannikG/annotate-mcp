@@ -180,15 +180,16 @@
 .title-block {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: var(--space-2);
     min-width: 0;
 }
 
 .page-actions {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     justify-content: flex-end;
-    gap: var(--space-2);
+    gap: var(--space-4);
 }
 
 .page-description {
