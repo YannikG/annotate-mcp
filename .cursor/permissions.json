@@ -1,0 +1,8 @@
+{
+  "autoRun": {
+    "allow_instructions": [],
+    "block_instructions": [
+      "Never merge a pull request. Block gh pr merge, including --squash and --admin, and any gh api call that merges a pull request. A person squash-merges."
+    ]
+  }
+}

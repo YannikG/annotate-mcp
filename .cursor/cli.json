@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "deny": [
+      "Shell(gh:pr merge*)",
+      "Shell(gh:api*/pulls/*/merge*)"
+    ]
+  }
+}
