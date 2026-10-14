@@ -2,7 +2,22 @@
   "permissions": {
     "deny": [
       "Shell(gh:pr merge*)",
-      "Shell(gh:api*/pulls/*/merge*)"
+      "Shell(gh:* pr merge*)",
+      "Shell(gh:*pulls/*/merge*)",
+      "Shell(gh:*mergePullRequest*)",
+      "Shell(gh:pr review*--approve*)",
+      "Shell(gh:pr review*-a*)",
+      "Shell(gh:* pr review*--approve*)",
+      "Shell(gh:* pr review*-a*)",
+      "Shell(gh:*event=APPROVE*)",
+      "Shell(git:push* main*)",
+      "Shell(git:push* master*)",
+      "Shell(git:push*:main*)",
+      "Shell(git:push*:master*)",
+      "Shell(git:push* refs/heads/main*)",
+      "Shell(git:push* refs/heads/master*)",
+      "Shell(curl:*pulls/*/merge*)",
+      "Shell(curl:*mergePullRequest*)"
     ]
   }
 }

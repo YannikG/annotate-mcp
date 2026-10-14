@@ -8,6 +8,6 @@ Check the wiki pages under `docs/wiki/` and the other guides under `docs/` in th
 
 Pull requests are limited to repository administrators, maintainers, and the GitHub logins in `CONTRIBUTORS.md`. That file is one login per line. A line added in the same pull request does not count.
 
-`main` moves only by squash-merging a pull request. Merge commits and rebase merges are off. The ruleset applies to administrators. A direct push to `main` is refused. An agent working an issue runs `gh issue develop <number> -c` and does not merge the pull request.
+`main` moves only by squash-merging a pull request. Merge commits and rebase merges are off. The ruleset applies to administrators. A direct push to `main` is refused. An agent working an issue runs `gh issue develop <number> -c`, does not merge or approve the pull request, and does not push `main`.
 
 The pull request body links an issue in this repository, for example `https://github.com/YannikG/annotate-mcp/issues/1`.
