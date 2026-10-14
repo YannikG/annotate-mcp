@@ -48,7 +48,14 @@
             <Controls>
                 <RevisionPicker Revisions="Model.Revisions" SelectedId="@Model.SelectedId" RevisionChanged="RevisionChanged" />
             </Controls>
+            <Actions>
+                <Button Variant="ButtonVariant.Quiet" data-download-report OnClick="DownloadReport">Download report</Button>
+            </Actions>
         </RevisionView>
+    }
+    @if (Model.ReportError is not null)
+    {
+        <p class="alert" role="alert" data-report-error>@Model.ReportError</p>
     }
     @if (Model.Error is not null)
     {
@@ -63,6 +70,7 @@
     [Parameter] public EventCallback Delete { get; set; }
     [Parameter] public EventCallback MarkReadOnly { get; set; }
     [Parameter] public EventCallback ClearReadOnly { get; set; }
+    [Parameter] public EventCallback DownloadReport { get; set; }
     [Parameter] public EventCallback<string> RevisionChanged { get; set; }
 
     private RevisionRow? SelectedRevision =>

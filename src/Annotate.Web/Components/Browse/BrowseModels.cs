@@ -49,7 +49,8 @@ public sealed record DocumentViewModel(
     IReadOnlyList<RevisionRow> Revisions,
     string? SelectedId,
     RevisionViewModel? Selected,
-    string? Error = null);
+    string? Error = null,
+    string? ReportError = null);
 
 public sealed record RevisionViewModel(
     int Number, IReadOnlyList<BlockRow> Blocks, string Markdown = "",

@@ -3,6 +3,7 @@
 @inject IDocuments Documents
 @inject IPlans Plans
 @inject IReviews Reviews
+@inject IReportScript Report
 @inject NavigationManager Navigation
 
 <PageTitle>@(model?.Title ?? "Document") · Annotate</PageTitle>
@@ -13,7 +14,7 @@
 }
 else if (model is not null)
 {
-    <DocumentView Model="model" Archive="Archive" Restore="Restore" Delete="Delete" MarkReadOnly="MarkReadOnly" ClearReadOnly="ClearReadOnly" RevisionChanged="Choose" />
+    <DocumentView Model="model" Archive="Archive" Restore="Restore" Delete="Delete" MarkReadOnly="MarkReadOnly" ClearReadOnly="ClearReadOnly" DownloadReport="DownloadReport" RevisionChanged="Choose" />
 }
 
 @code {
@@ -87,7 +88,7 @@ else if (model is not null)
             return;
         }
 
-        model = model with { SelectedId = revisionId, Selected = await Body(revisionId) };
+        model = model with { SelectedId = revisionId, Selected = await Body(revisionId), ReportError = null };
         string? newestId = model.Revisions.Count == 0 ? null : model.Revisions[^1].RevisionId;
         string target = revisionId == newestId ? $"/documents/{Id}" : $"/documents/{Id}/revisions/{revisionId}";
         Navigation.NavigateTo(target);
@@ -112,6 +113,19 @@ else if (model is not null)
             new Annotate.Reviews.Application.RevisionId(revisionId),
             CancellationToken.None);
         return RevisionBody.FromDocument(revision, review?.Annotations, review?.Id.Value);
+    }
+
+    private async Task DownloadReport()
+    {
+        if (model?.Selected is not RevisionViewModel selected)
+        {
+            return;
+        }
+
+        ReportDownload download = await Report.DownloadAsync(
+            PlanReport.Html(model.Title, null, null, selected.Markdown, "Document report", "Document", "Document"),
+            "document.html");
+        model = model with { ReportError = download.Saved ? null : download.Error };
     }
 
     private async Task Archive() => await Change(await Documents.ArchiveAsync(new DocumentId(Id), CancellationToken.None));

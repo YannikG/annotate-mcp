@@ -7,14 +7,23 @@ namespace Annotate.Web;
 
 public static class PlanReport
 {
-    public static string Html(string? summary, string? storyUrl, string? acceptanceCriteria, string markdown)
+    public static string Html(
+        string? summary,
+        string? storyUrl,
+        string? acceptanceCriteria,
+        string markdown,
+        string label = "Plan report",
+        string untitled = "Plan",
+        string article = "Plan")
     {
-        string title = Title(summary);
+        string title = Title(summary, untitled);
         StringBuilder html = new();
         html.Append("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>");
         AppendText(html, title);
         html.Append("</title><style>").Append(PlanReportStyles.Css);
-        html.Append("</style></head><body><main><header class=\"report-header\"><p class=\"report-label\">Plan report</p><h1>");
+        html.Append("</style></head><body><main><header class=\"report-header\"><p class=\"report-label\">");
+        AppendText(html, label);
+        html.Append("</p><h1>");
         AppendText(html, title);
         html.Append("</h1>");
         if (!string.IsNullOrEmpty(storyUrl))
@@ -34,7 +43,9 @@ public static class PlanReport
             html.Append("</p></section>");
         }
 
-        html.Append("<article class=\"report-plan\" aria-label=\"Plan\">");
+        html.Append("<article class=\"report-plan\" aria-label=\"");
+        AppendText(html, article);
+        html.Append("\">");
         ParseOutcome parsed = PlanMarkdown.Parse(markdown);
         if (parsed is ParseOutcome.Invalid invalid)
         {
@@ -54,11 +65,11 @@ public static class PlanReport
     internal static void AppendText(StringBuilder html, string value) =>
         html.Append(HtmlEncoder.Default.Encode(value));
 
-    private static string Title(string? summary)
+    private static string Title(string? summary, string untitled)
     {
         if (string.IsNullOrWhiteSpace(summary))
         {
-            return "Plan";
+            return untitled;
         }
 
         return summary.Trim();

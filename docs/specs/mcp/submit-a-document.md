@@ -20,6 +20,7 @@ sources:
 - Refuse `await_plan_review` for a document review, and `await_document_review` for a plan review.
 - Show the revision dropdown on the document page, in the editor toolbar, and open an older revision at `/documents/{id}/revisions/{revisionId}`.
 - Show Exit review mode in the document review heading, beside the status. It opens the document.
+- Download the selected document revision from the document page toolbar as standalone HTML. A download failure shows an alert.
 
 ## Must not
 
