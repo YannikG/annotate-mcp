@@ -87,14 +87,21 @@ public partial class ReviewPage
     {
         await previous;
         string? error;
-        try
+        if (await DocumentReadOnly())
         {
-            SaveAnnotationsOutcome result = await Reviews.SaveAnnotationsAsync(new ReviewId(reviewId), annotations, CancellationToken.None);
-            error = result is SaveAnnotationsOutcome.Refused refused ? refused.Error : null;
+            error = "Document is read-only.";
         }
-        catch (Exception)
+        else
         {
-            error = "Please try again.";
+            try
+            {
+                SaveAnnotationsOutcome result = await Reviews.SaveAnnotationsAsync(new ReviewId(reviewId), annotations, CancellationToken.None);
+                error = result is SaveAnnotationsOutcome.Refused refused ? refused.Error : null;
+            }
+            catch (Exception)
+            {
+                error = "Please try again.";
+            }
         }
 
         if (reviewId == Id && version == draftVersion)

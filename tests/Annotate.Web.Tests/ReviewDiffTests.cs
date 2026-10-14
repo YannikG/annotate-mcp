@@ -99,6 +99,29 @@ public sealed class ReviewDiffTests
     }
 
     [Fact]
+    public async Task ShowsDiffForADocumentRevision()
+    {
+        FakePlans plans = new() { DiffResult = SampleLines() };
+        plans.Projects.Add(new ProjectSummary(new ProjectId("project-1"), "Atlas", "/work/atlas", 0));
+        FakeDocuments documents = new();
+        documents.Documents["doc-1"] = new DocumentDetail(
+            new DocumentId("doc-1"), new ProjectId("project-1"), "Audit", null, [], false, false, []);
+        documents.Revisions["rev-1"] = DocumentRevision("rev-1", 1, null);
+        documents.Revisions["rev-2"] = DocumentRevision("rev-2", 2, "rev-1");
+        FakeReviews reviews = new() { Review = Review("rev-2", ReviewStatus.Pending) };
+        FakeSelection selection = new();
+
+        using BunitContext context = BrowseHost.Open(plans, reviews);
+        context.Services.AddSingleton<IDocuments>(documents);
+        IRenderedComponent<ReviewPage> page = Render(context, selection);
+
+        await page.Find("[data-review]").KeyDownAsync("d");
+
+        Assert.Equal("Changes from v1 to v2", page.Find("section[data-diff] h2").TextContent);
+        Assert.Equal([("rev-1", "rev-2")], plans.DiffCalls);
+    }
+
+    [Fact]
     public async Task SecondDReturnsToPlanSourceWithoutReadingSelection()
     {
         (FakePlans plans, FakeReviews reviews, FakeSelection selection) host = Continued(Fences);
@@ -254,6 +277,18 @@ public sealed class ReviewDiffTests
             [new ReviewPrompt("storage", PromptKind.Choice, "Which store?", ["SQLite"])]);
         return (plans, reviews, new FakeSelection());
     }
+
+    private static DocumentRevisionDetail DocumentRevision(string id, int number, string? parent) =>
+        new(
+            new PlanRevisionId(id),
+            new DocumentId("doc-1"),
+            number,
+            "# Audit\n",
+            null,
+            [],
+            parent,
+            null,
+            false);
 
     private static IRenderedComponent<ReviewPage> Render(BunitContext context, FakeSelection selection)
     {

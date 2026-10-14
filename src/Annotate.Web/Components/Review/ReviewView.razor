@@ -2,7 +2,13 @@
     <ProjectBreadcrumb ProjectId="@Model.ProjectId" ProjectName="@Model.ProjectName" />
     <header class="editor-heading">
         <h1>@Model.Title</h1>
-        <Badge Tone="@StatusTone.OfLabel(Model.Status)" data-status>@Model.Status</Badge>
+        <div class="page-actions">
+            <Badge Tone="@StatusTone.OfLabel(Model.Status)" data-status>@Model.Status</Badge>
+            @if (Model.ExitHref is not null)
+            {
+                <a class="btn btn-secondary" data-exit-review href="@Model.ExitHref">Exit review mode</a>
+            }
+        </div>
     </header>
     <EditorToolbar Markdown="@Model.Markdown">
         <Trailing>
@@ -20,11 +26,16 @@
         }
         <div class="nav-right @(actionsOpen ? "is-open" : null)" id="@actionsId" role="group" aria-label="Review actions">
             <p class="countdown" hidden="@(!Model.CountdownRunning)">Submitting in <span data-countdown data-running="@(Model.CountdownRunning ? "true" : "false")">@Model.Countdown</span></p>
+            @if (Model.AllowApprove)
+            {
             <label class="check">
                 <input type="checkbox" data-auto-close checked="@Model.AutoCloseOnSubmit" @onchange="OnAutoClose" />
                 Auto-close
             </label>
+            }
             <Button Variant="ButtonVariant.Destructive" data-request-changes Disabled="@(!Model.Pending)" OnClick="AskRequestChanges">Request changes</Button>
+            @if (Model.AllowApprove)
+            {
             <div class="split">
                 <Button Variant="ButtonVariant.Primary" data-approve Disabled="@(!Model.CanApprove)" OnClick="Approve">Approve</Button>
                 <button type="button" class="split-toggle" aria-haspopup="menu" aria-expanded="@(menuOpen ? "true" : "false")" aria-label="Approve and Download report" disabled="@(!Model.CanApprove)" @onclick="ToggleMenu">
@@ -35,6 +46,7 @@
                     <button type="button" class="split-item" role="menuitem" data-download disabled="@(!Model.CanApprove)" @onclick="ChooseDownload">Approve and Download report</button>
                 </div>
             </div>
+            }
         </div>
         </div>
         </Trailing>
@@ -84,7 +96,11 @@
                 <CascadingValue Value="DecisionContext">
                     <CascadingValue Name="Annotations" Value="Model.Marks">
                         <CascadingValue Name="AnnotationsChanged" Value="AnnotationRefresh">
-                            <PlanText Markdown="@Model.Markdown" ReviewId="@Model.ReviewId" BlockKeys="@Model.BlockKeys" />
+                            <CascadingValue Name="LockedKeys" Value="Model.LockedKeys">
+                                <CascadingValue Name="ToggleLock" Value="LockToggle">
+                                    <PlanText Markdown="@Model.Markdown" ReviewId="@Model.ReviewId" BlockKeys="@Model.BlockKeys" />
+                                </CascadingValue>
+                            </CascadingValue>
                         </CascadingValue>
                     </CascadingValue>
                 </CascadingValue>
@@ -111,7 +127,10 @@
             <p data-report-failure>Report was not downloaded</p>
             <p data-report-error>@Model.ReportFailure</p>
             <div class="alert-actions">
+                @if (Model.AllowApprove)
+                {
                 <Button data-approve-without-download Disabled="@(!Model.CanApprove)" OnClick="Approve">Approve without download</Button>
+                }
                 <Button Variant="ButtonVariant.Quiet" data-dismiss-report OnClick="DismissReport">Dismiss</Button>
             </div>
         </div>
@@ -205,6 +224,11 @@
 
     [Parameter]
     public EventCallback<string> RemovePhrase { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ToggleLock { get; set; }
+
+    private EventCallback<string> LockToggle => Model.AllowApprove ? default : ToggleLock;
 
     private int dropCount;
 

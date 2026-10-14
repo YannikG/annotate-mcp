@@ -10,9 +10,13 @@ internal sealed class PlansDbContext(DbContextOptions<PlansDbContext> options) :
 
     public DbSet<Plan> Plans => Set<Plan>();
 
+    public DbSet<Document> Documents => Set<Document>();
+
     public DbSet<Revision> Revisions => Set<Revision>();
 
     public DbSet<StoredBlock> Blocks => Set<StoredBlock>();
+
+    public DbSet<BlockLock> BlockLocks => Set<BlockLock>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) => PlansModel.Configure(modelBuilder);
 }

@@ -103,11 +103,16 @@ Reports are standalone HTML and cannot link `tokens.css`, so `PlanReportStyles` 
 | Action | The one place |
 | --- | --- |
 | Continue a pending review | The plan page header (Continue review) |
+| Continue a pending document review | The document page header (Continue review) |
+| Make a document read-only, or lift it | The document page header |
+| Lock or unlock a heading and the text under it | The end of that heading in the document review. Hover or keyboard focus reveals it on a fine pointer; it stays visible on touch. A locked heading keeps an orange lock visible. The text stays locked until the next heading |
+| Exit review mode | The review heading, beside the status, in the same place as Continue review on the document page. It opens the plan or the document |
 | Download a plan report | The plan page toolbar, when the selected revision is approved (the review page's Approve and Download is part of submitting a review) |
-| Annotate (delete, replace, insert, comment) | The selection popup beside the quote |
+| Download a document report | The document page toolbar. It saves the selected revision as standalone HTML |
+| Annotate (delete, replace, insert, comment) | The selection popup beside the quote. A locked block shows a toast instead of the popup |
 | Submit review (approve, request changes) | Review actions: right panel on desktop, Actions flyout below 1100px |
 | Answer a decision | The decision dialog, opened from the card's Answer button |
-| Project edit, archive, delete | The project page header |
+| Project edit, archive, delete | The project header, on both Plans and Documents. Archive, restore, and delete ask for confirmation |
 | Theme switch | The shared navigation |
 | Copy a plan or review id | The editor toolbar copy menu |
 | Copy a heading's review id and block key | The copy icon at the start of that heading |
@@ -119,7 +124,7 @@ The heading copy icon shows the tooltip “Copies the review id and this block i
 
 ## Layout
 
-Breakpoints: 600px, 700px, 800px, and 1100px. The only structural one is 1100px: below it side panels become flyouts and review submission moves into the Actions disclosure; at or above it the page is three columns. The shared navigation stays on one row at every width. The editor toolbar is sticky beneath the navigation. The footer with keyboard hints shows on plan, revision, and review pages only.
+Breakpoints: 600px, 700px, 800px, and 1100px. The only structural one is 1100px: below it side panels become flyouts and review submission moves into the Actions disclosure; at or above it the page is three columns. The shared navigation stays on one row at every width. Project browse puts the project header across the full width. Below it, Plans and Documents sit in a side rail level with the list tabs; the current item uses the accent fill. Below 700px that rail becomes a row above the list. The editor toolbar is sticky beneath the navigation. A document page puts the revision dropdown in that toolbar, in the same place as a plan page, and shows that revision's review status beside the title. The footer with keyboard hints shows on plan, revision, and review pages only.
 
 ## Accessibility
 

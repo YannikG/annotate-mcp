@@ -17,6 +17,70 @@ namespace Annotate.Plans.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
 
+            modelBuilder.Entity("Annotate.Plans.Domain.BlockLock", b =>
+                {
+                    b.Property<string>("DocumentId")
+                        .HasMaxLength(36)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("document_id");
+
+                    b.Property<string>("BlockKey")
+                        .HasMaxLength(36)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("block_key");
+
+                    b.HasKey("DocumentId", "BlockKey");
+
+                    b.ToTable("block_locks", (string)null);
+                });
+
+            modelBuilder.Entity("Annotate.Plans.Domain.Document", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(36)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ArchivedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("archived_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("ProjectId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("project_id");
+
+                    b.Property<DateTimeOffset?>("ReadOnlyAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("read_only_at");
+
+                    b.Property<string>("SessionId")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("session_id");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("title");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("documents", (string)null);
+                });
+
             modelBuilder.Entity("Annotate.Plans.Domain.Plan", b =>
                 {
                     b.Property<string>("Id")
@@ -126,6 +190,11 @@ namespace Annotate.Plans.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("DocumentId")
+                        .HasMaxLength(36)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("document_id");
+
                     b.Property<string>("Markdown")
                         .IsRequired()
                         .HasMaxLength(256000)
@@ -147,7 +216,6 @@ namespace Annotate.Plans.Migrations
                         .HasColumnName("parent_revision_id");
 
                     b.Property<string>("PlanId")
-                        .IsRequired()
                         .HasMaxLength(36)
                         .HasColumnType("TEXT")
                         .HasColumnName("plan_id");
@@ -166,8 +234,13 @@ namespace Annotate.Plans.Migrations
 
                     b.HasIndex("ParentRevisionId");
 
+                    b.HasIndex("DocumentId", "Number")
+                        .IsUnique()
+                        .HasFilter("document_id IS NOT NULL");
+
                     b.HasIndex("PlanId", "Number")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("plan_id IS NOT NULL");
 
                     b.ToTable("revisions", (string)null);
                 });
@@ -220,6 +293,24 @@ namespace Annotate.Plans.Migrations
                     b.ToTable("blocks", (string)null);
                 });
 
+            modelBuilder.Entity("Annotate.Plans.Domain.BlockLock", b =>
+                {
+                    b.HasOne("Annotate.Plans.Domain.Document", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Annotate.Plans.Domain.Document", b =>
+                {
+                    b.HasOne("Annotate.Plans.Domain.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Annotate.Plans.Domain.Plan", b =>
                 {
                     b.HasOne("Annotate.Plans.Domain.Project", null)
@@ -231,6 +322,11 @@ namespace Annotate.Plans.Migrations
 
             modelBuilder.Entity("Annotate.Plans.Domain.Revision", b =>
                 {
+                    b.HasOne("Annotate.Plans.Domain.Document", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("Annotate.Plans.Domain.Revision", null)
                         .WithMany()
                         .HasForeignKey("ParentRevisionId")
@@ -239,8 +335,7 @@ namespace Annotate.Plans.Migrations
                     b.HasOne("Annotate.Plans.Domain.Plan", null)
                         .WithMany()
                         .HasForeignKey("PlanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("Annotate.Plans.Domain.StoredBlock", b =>

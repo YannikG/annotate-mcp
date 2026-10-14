@@ -1,0 +1,112 @@
+<div class="frame">
+    @if (Model.Selected is not null)
+    {
+        <RevisionView Model="Model.Selected">
+            <Header>
+                <ProjectBreadcrumb ProjectId="@Model.ProjectId" ProjectName="@Model.ProjectName" />
+                <header class="page-title">
+                    <div class="title-block">
+                        <h1>@Model.Title</h1>
+                        @if (SelectedRevision is not null)
+                        {
+                            <Badge Tone="@StatusTone.OfLabel(SelectedRevision.Status)" data-status>@SelectedRevision.Status</Badge>
+                        }
+                        @if (Model.ReadOnly)
+                        {
+                            <Badge data-read-only>Read-only</Badge>
+                        }
+                        @if (Model.Archived)
+                        {
+                            <Badge data-archived-document>Archived</Badge>
+                        }
+                    </div>
+                    <div class="page-actions">
+                        @if (Model.PendingReviewId is not null && !Model.ReadOnly)
+                        {
+                            <a class="btn btn-primary" data-continue-review href="/review/@Model.PendingReviewId">Continue review</a>
+                        }
+                        @if (Model.ReadOnly)
+                        {
+                            <Button data-edit-document OnClick="ClearReadOnly">Make editable</Button>
+                        }
+                        else
+                        {
+                            <Button data-read-only-document OnClick="MarkReadOnly">Read-only</Button>
+                        }
+                        @if (Model.Archived)
+                        {
+                            <Button data-restore OnClick="() => mode = Mode.Restore">Restore</Button>
+                        }
+                        else
+                        {
+                            <Button data-archive OnClick="() => mode = Mode.Archive">Archive</Button>
+                        }
+                        <Button Variant="ButtonVariant.Destructive" data-delete OnClick="() => mode = Mode.Delete">Delete</Button>
+                    </div>
+                </header>
+            </Header>
+            <Controls>
+                <RevisionPicker Revisions="Model.Revisions" SelectedId="@Model.SelectedId" RevisionChanged="RevisionChanged" />
+            </Controls>
+            <Actions>
+                <Button Variant="ButtonVariant.Quiet" data-download-report OnClick="DownloadReport">Download report</Button>
+            </Actions>
+        </RevisionView>
+    }
+    @if (Model.ReportError is not null)
+    {
+        <p class="alert" role="alert" data-report-error>@Model.ReportError</p>
+    }
+    @if (Model.Error is not null)
+    {
+        <p class="alert" role="alert">@Model.Error</p>
+    }
+</div>
+@if (mode == Mode.Archive)
+{
+    <ConfirmDialog Title="Archive this document?" Body="You can restore it later. It leaves the active document list until then."
+        ConfirmLabel="Archive" Error="@Model.Error" Confirm="Archive" Cancel="Close" />
+}
+else if (mode == Mode.Restore)
+{
+    <ConfirmDialog Title="Restore this document?" Body="It returns to the active document list."
+        ConfirmLabel="Restore" Error="@Model.Error" Confirm="Restore" Cancel="Close" />
+}
+else if (mode == Mode.Delete)
+{
+    <ConfirmDialog Title="Delete this document permanently?" Body="This cannot be undone. The document and its reviews are removed."
+        ConfirmLabel="Delete permanently" ConfirmVariant="ButtonVariant.Destructive" Error="@Model.Error" Confirm="Delete" Cancel="Close" />
+}
+
+@code {
+    private enum Mode { None, Archive, Restore, Delete }
+
+    [Parameter, EditorRequired] public DocumentViewModel Model { get; set; } = default!;
+    [Parameter] public EventCallback Archive { get; set; }
+    [Parameter] public EventCallback Restore { get; set; }
+    [Parameter] public EventCallback Delete { get; set; }
+    [Parameter] public EventCallback MarkReadOnly { get; set; }
+    [Parameter] public EventCallback ClearReadOnly { get; set; }
+    [Parameter] public EventCallback DownloadReport { get; set; }
+    [Parameter] public EventCallback<string> RevisionChanged { get; set; }
+
+    private Mode mode;
+
+    private bool? wasArchived;
+
+    private RevisionRow? SelectedRevision =>
+        Model.Revisions.FirstOrDefault(revision => revision.RevisionId == Model.SelectedId);
+
+    protected override void OnParametersSet()
+    {
+        if ((wasArchived == false && Model.Archived && mode == Mode.Archive)
+            || (wasArchived == true && !Model.Archived && mode == Mode.Restore))
+        {
+            mode = Mode.None;
+        }
+
+        wasArchived = Model.Archived;
+    }
+
+    private void Close() => mode = Mode.None;
+}

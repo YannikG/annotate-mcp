@@ -12,9 +12,11 @@ public sealed class SelectStyleTests
     public void RevisionPickerRendersTheCustomDropdown()
     {
         using BunitContext context = new();
-        PlanViewModel model = new("Plan", [new RevisionRow("rev-1", 1, "2026-01-01", "Pending")], "rev-1");
+        RevisionRow[] revisions = [new RevisionRow("rev-1", 1, "2026-01-01", "Pending")];
 
-        var picker = context.Render<RevisionPicker>(p => p.Add(c => c.Model, model));
+        var picker = context.Render<RevisionPicker>(p => p
+            .Add(c => c.Revisions, revisions)
+            .Add(c => c.SelectedId, "rev-1"));
 
         Assert.Equal("Revision", picker.Find(".select[data-revision] .select-label").TextContent);
         Assert.Equal("v1 · Pending", picker.Find("[data-select-trigger]").TextContent.Trim());

@@ -17,9 +17,33 @@ internal static class RevisionBody
                 block.Start,
                 block.End,
                 Change(block.Change),
-                block.Key)).ToArray(),
+                block.Key,
+                block.Locked)).ToArray(),
             revision.Markdown, annotations, revision.Summary, revision.StoryUrl, revision.AcceptanceCriteria,
             approved, revision.Attribution, revision.PlanId.Value, reviewId);
+
+    public static RevisionViewModel FromDocument(
+        DocumentRevisionDetail revision,
+        IReadOnlyList<Annotation>? annotations = null,
+        string? reviewId = null) =>
+        new(
+            revision.Number,
+            revision.Blocks.Select(block => new BlockRow(
+                Text(revision.Markdown, block.Start, block.End),
+                block.Start,
+                block.End,
+                Change(block.Change),
+                block.Key,
+                block.Locked)).ToArray(),
+            revision.Markdown,
+            annotations,
+            revision.Summary,
+            null,
+            null,
+            false,
+            revision.Attribution,
+            null,
+            reviewId);
 
     private static string Text(string markdown, int start, int end)
     {

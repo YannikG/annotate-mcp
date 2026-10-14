@@ -81,10 +81,22 @@ internal static class PlansModel
                 .HasColumnName("client_version")
                 .HasMaxLength(AttributionRules.MaxLength);
             entity.Property(revision => revision.CreatedAt).HasColumnName("created_at");
-            entity.HasIndex(revision => new { revision.PlanId, revision.Number }).IsUnique();
+            entity.Property(revision => revision.DocumentId).HasColumnName("document_id").HasMaxLength(IdLength);
+            entity.HasIndex(revision => new { revision.PlanId, revision.Number })
+                .IsUnique()
+                .HasFilter("plan_id IS NOT NULL");
+            entity.HasIndex(revision => new { revision.DocumentId, revision.Number })
+                .IsUnique()
+                .HasFilter("document_id IS NOT NULL");
             entity.HasOne<Plan>()
                 .WithMany()
                 .HasForeignKey(revision => revision.PlanId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Document>()
+                .WithMany()
+                .HasForeignKey(revision => revision.DocumentId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.HasOne<Revision>()
                 .WithMany()
@@ -113,6 +125,36 @@ internal static class PlansModel
             entity.HasOne<Revision>()
                 .WithMany()
                 .HasForeignKey(block => block.RevisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Document>(entity =>
+        {
+            entity.ToTable("documents");
+            entity.HasKey(document => document.Id);
+            entity.Property(document => document.Id).HasColumnName("id").HasMaxLength(IdLength);
+            entity.Property(document => document.ProjectId).HasColumnName("project_id").HasMaxLength(IdLength);
+            entity.Property(document => document.Title).HasColumnName("title").HasMaxLength(PlanTitle.MaxLength).IsRequired();
+            entity.Property(document => document.SessionId).HasColumnName("session_id").HasMaxLength(RevisionLimits.MaxSessionId);
+            entity.Property(document => document.CreatedAt).HasColumnName("created_at");
+            entity.Property(document => document.UpdatedAt).HasColumnName("updated_at");
+            entity.Property(document => document.ArchivedAt).HasColumnName("archived_at");
+            entity.Property(document => document.ReadOnlyAt).HasColumnName("read_only_at");
+            entity.HasOne<Project>()
+                .WithMany()
+                .HasForeignKey(document => document.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<BlockLock>(entity =>
+        {
+            entity.ToTable("block_locks");
+            entity.HasKey(item => new { item.DocumentId, item.BlockKey });
+            entity.Property(item => item.DocumentId).HasColumnName("document_id").HasMaxLength(IdLength);
+            entity.Property(item => item.BlockKey).HasColumnName("block_key").HasMaxLength(BlockKeys.KeyLength).IsRequired();
+            entity.HasOne<Document>()
+                .WithMany()
+                .HasForeignKey(item => item.DocumentId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

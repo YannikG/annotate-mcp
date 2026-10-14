@@ -18,6 +18,8 @@ public static class PlansServiceCollectionExtensions
         services.AddSingleton<IPlans>(provider => new PlanSubmitter(
             provider.GetRequiredService<IDbContextFactory<PlansDbContext>>(),
             provider.GetRequiredService<PlansSettings>()));
+        services.AddSingleton<IDocuments>(provider => new DocumentSubmitter(
+            provider.GetRequiredService<IDbContextFactory<PlansDbContext>>()));
         return services;
     }
 }

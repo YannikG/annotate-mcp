@@ -1,9 +1,59 @@
-/* Copy — desktop hover controls for plan, review, and heading ids.
-   Hidden unless the pointer can hover. Keyboard focus does not reveal them. */
+/* Copy controls use desktop hover. Lock controls also support keyboard focus and touch. */
 
 .copy-ids,
 .copy-anchor-wrap {
     display: none;
+}
+
+.copy-heading {
+    position: relative;
+}
+
+.copy-heading:has(.lock-anchor-wrap) {
+    padding-right: calc(var(--space-5) + var(--space-2));
+}
+
+.lock-anchor-wrap {
+    position: absolute;
+    top: calc((1.25em - var(--space-5)) / 2);
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-5);
+    height: var(--space-5);
+}
+
+.lock-anchor {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--muted);
+    line-height: 1;
+    opacity: 1;
+}
+
+.lock-anchor svg {
+    width: var(--space-5);
+    height: var(--space-5);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.lock-anchor-wrap.is-locked .lock-anchor {
+    color: var(--lock-ink);
 }
 
 .toast-host {
@@ -124,5 +174,68 @@
         background: transparent;
         color: var(--nav-accent);
         opacity: 0.8;
+    }
+
+    .lock-anchor-wrap {
+        position: absolute;
+        top: calc((1.25em - var(--space-5)) / 2);
+        right: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--space-5);
+        height: var(--space-5);
+    }
+
+    .lock-anchor {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        color: var(--muted);
+        line-height: 1;
+        opacity: 0;
+    }
+
+    .lock-anchor svg {
+        width: var(--space-5);
+        height: var(--space-5);
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .copy-heading:hover .lock-anchor,
+    .copy-heading:focus-within .lock-anchor {
+        color: var(--nav-accent);
+        opacity: 0.5;
+    }
+
+    .copy-heading .lock-anchor:hover,
+    .copy-heading .lock-anchor:focus-visible {
+        border: 0;
+        background: transparent;
+        color: var(--nav-accent);
+        opacity: 0.8;
+    }
+
+    .copy-heading:hover .lock-anchor-wrap.is-locked .lock-anchor,
+    .copy-heading:focus-within .lock-anchor-wrap.is-locked .lock-anchor,
+    .copy-heading .lock-anchor-wrap.is-locked .lock-anchor:hover,
+    .copy-heading .lock-anchor-wrap.is-locked .lock-anchor:focus-visible {
+        border: 0;
+        background: transparent;
+        color: var(--lock-ink);
+        opacity: 1;
     }
 }

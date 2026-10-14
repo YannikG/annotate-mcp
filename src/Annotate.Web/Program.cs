@@ -25,15 +25,18 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddHealthChecks();
 builder.Services.AddMcpServer()
     .WithHttpTransport(options => options.SessionMode = HttpServerSessionMode.Stateless)
-    .WithTools<PlanTools>();
+    .WithTools<PlanTools>()
+    .WithTools<DocumentTools>();
 builder.Services.AddPlans(new PlansSettings(connectionString, trustedStoryDomains));
 builder.Services.AddReviews(new ReviewsSettings(connectionString));
 builder.Services.AddSingleton<IProjectPlanPages>(new SqliteProjectPlanPages(connectionString));
+builder.Services.AddSingleton<IProjectDocumentPages>(new SqliteProjectDocumentPages(connectionString));
 builder.Services.AddSingleton<IBrowserProcess, ShellBrowserProcess>();
 builder.Services.AddSingleton<IReviewBrowser>(provider => new ReviewBrowser(
     ReviewBrowser.CurrentPlatform(),
     provider.GetRequiredService<IBrowserProcess>()));
 builder.Services.AddSingleton<IPlanHost, PlanHost>();
+builder.Services.AddSingleton<IDocumentHost, DocumentHost>();
 builder.Services.AddScoped<ISelectionReader, JsSelectionReader>();
 builder.Services.AddScoped<IReportScript, JsReportScript>();
 builder.Services.AddScoped<IClipboard, JsClipboard>();

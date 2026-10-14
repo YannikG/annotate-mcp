@@ -10,6 +10,7 @@ namespace Annotate.Web;
 
 internal sealed class PlanHost(
     IPlans plans,
+    IDocuments documents,
     IReviews reviews,
     IConfiguration configuration,
     IReviewBrowser browser) : IPlanHost
@@ -93,6 +94,21 @@ internal sealed class PlanHost(
             seconds = limit;
         }
 
+        if (!string.IsNullOrWhiteSpace(reviewId))
+        {
+            ReviewDetail? review = await reviews.FindAsync(new ReviewId(reviewId.Trim()), cancellationToken);
+            if (review is not null)
+            {
+                DocumentRevisionDetail? document = await documents.RevisionAsync(
+                    new Annotate.Plans.Application.RevisionId(review.RevisionId.Value),
+                    cancellationToken);
+                if (document is not null)
+                {
+                    return Error("This review belongs to a document.");
+                }
+            }
+        }
+
         WaitOutcome outcome = await reviews.WaitAsync(
             new ReviewId(reviewId),
             TimeSpan.FromSeconds(seconds),
@@ -126,24 +142,26 @@ internal sealed class PlanHost(
 
     public async Task<string> ListBlocksAsync(string revisionId, CancellationToken cancellationToken)
     {
-        RevisionDetail? revision = await Revision(revisionId, cancellationToken);
-        return revision is null
+        (string Markdown, IReadOnlyList<RevisionBlock> Blocks, bool ShowLock)? found =
+            await Blocks(revisionId, cancellationToken);
+        return found is null
             ? Error(RevisionWasNotFound)
-            : string.Join("\n\n", revision.Blocks.Select(block => Describe(revision.Markdown, block)));
+            : string.Join("\n\n", found.Value.Blocks.Select(block => Describe(found.Value.Markdown, block, found.Value.ShowLock)));
     }
 
     public async Task<string> ReadBlockAsync(string revisionId, string blockId, CancellationToken cancellationToken)
     {
-        RevisionDetail? revision = await Revision(revisionId, cancellationToken);
-        if (revision is null)
+        (string Markdown, IReadOnlyList<RevisionBlock> Blocks, bool ShowLock)? found =
+            await Blocks(revisionId, cancellationToken);
+        if (found is null)
         {
             return Error(RevisionWasNotFound);
         }
 
         RevisionBlock? block = string.IsNullOrWhiteSpace(blockId)
             ? null
-            : revision.Blocks.FirstOrDefault(item => item.Key.Equals(blockId.Trim(), StringComparison.Ordinal));
-        return block is null ? Error(BlockWasNotFound) : Slice(revision.Markdown, block.Start, block.End);
+            : found.Value.Blocks.FirstOrDefault(item => item.Key.Equals(blockId.Trim(), StringComparison.Ordinal));
+        return block is null ? Error(BlockWasNotFound) : Slice(found.Value.Markdown, block.Start, block.End);
     }
 
     public async Task<string> AnnotateBlockAsync(
@@ -171,12 +189,27 @@ internal sealed class PlanHost(
         RevisionDetail? revision = await plans.RevisionAsync(
             new Annotate.Plans.Application.RevisionId(review.RevisionId.Value),
             cancellationToken);
-        RevisionBlock? block = revision is null || string.IsNullOrWhiteSpace(blockId)
-            ? null
-            : revision.Blocks.FirstOrDefault(item => item.Key.Equals(blockId.Trim(), StringComparison.Ordinal));
-        if (block is null)
+        DocumentRevisionDetail? document = null;
+        if (revision is null)
+        {
+            document = await documents.RevisionAsync(new Annotate.Plans.Application.RevisionId(review.RevisionId.Value), cancellationToken);
+        }
+
+        if (document?.ReadOnly == true)
+        {
+            return Error("Document is read-only.");
+        }
+
+        RevisionBlock? block = revision?.Blocks.FirstOrDefault(item => item.Key.Equals(blockId?.Trim(), StringComparison.Ordinal))
+            ?? document?.Blocks.FirstOrDefault(item => item.Key.Equals(blockId?.Trim(), StringComparison.Ordinal));
+        if (block is null || string.IsNullOrWhiteSpace(blockId))
         {
             return Error(BlockWasNotFound);
+        }
+
+        if (block.Locked)
+        {
+            return Error("Block is locked.");
         }
 
         SaveAnnotationsOutcome outcome = await reviews.AddBlockCommentAsync(
@@ -198,12 +231,34 @@ internal sealed class PlanHost(
         return await plans.RevisionAsync(new Annotate.Plans.Application.RevisionId(revisionId.Trim()), cancellationToken);
     }
 
-    private static string Describe(string markdown, RevisionBlock block)
+    private async Task<(string Markdown, IReadOnlyList<RevisionBlock> Blocks, bool ShowLock)?> Blocks(
+        string revisionId,
+        CancellationToken cancellationToken)
+    {
+        RevisionDetail? revision = await Revision(revisionId, cancellationToken);
+        if (revision is not null)
+        {
+            return (revision.Markdown, revision.Blocks, false);
+        }
+
+        if (string.IsNullOrWhiteSpace(revisionId))
+        {
+            return null;
+        }
+
+        DocumentRevisionDetail? document = await documents.RevisionAsync(
+            new Annotate.Plans.Application.RevisionId(revisionId.Trim()),
+            cancellationToken);
+        return document is null ? null : (document.Markdown, document.Blocks, true);
+    }
+
+    private static string Describe(string markdown, RevisionBlock block, bool showLock)
     {
         string slice = Slice(markdown, block.Start, block.End);
         int newline = slice.IndexOf('\n');
         string line = (newline < 0 ? slice : slice[..newline]).Trim();
-        return $"blockId: {block.Key}\nkind: {block.Kind}\n{line}";
+        string locked = showLock ? $"\nlocked: {(block.Locked ? "true" : "false")}" : "";
+        return $"blockId: {block.Key}\nkind: {block.Kind}{locked}\n{line}";
     }
 
     private static string Slice(string markdown, int start, int end)

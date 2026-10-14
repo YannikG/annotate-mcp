@@ -96,7 +96,7 @@ internal sealed class PlanSubmitter(IDbContextFactory<PlansDbContext> contexts, 
         Revision? revision = await db.Revisions.SingleOrDefaultAsync(
             item => item.Id == id.Value,
             cancellationToken);
-        if (revision is null)
+        if (revision?.PlanId is null)
         {
             return null;
         }
@@ -161,7 +161,7 @@ internal sealed class PlanSubmitter(IDbContextFactory<PlansDbContext> contexts, 
         Revision? parent = await db.Revisions.SingleOrDefaultAsync(
             revision => revision.Id == request.ParentRevisionId,
             cancellationToken);
-        if (parent is null)
+        if (parent?.PlanId is null)
         {
             return new SubmitOutcome.Refused("Previous revision was not found.");
         }
