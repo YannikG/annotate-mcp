@@ -1,0 +1,221 @@
+@inject IPlans Plans
+@inject IReviews Reviews
+@inject NavigationManager Navigation
+
+<div class="frame">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/projects">Projects</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">@DisplayName</span>
+    </nav>
+    <header class="page-title">
+        <div class="title-block">
+            <h1>@DisplayName</h1>
+            <p class="path mono">@FolderPath</p>
+            @if (Archived)
+            {
+                <Badge>Archived project</Badge>
+            }
+        </div>
+        <div class="page-actions">
+            <Button data-edit OnClick="OpenEdit">Edit</Button>
+            @if (Archived)
+            {
+                <Button data-restore OnClick="OpenRestore">Restore</Button>
+            }
+            else
+            {
+                <Button data-archive OnClick="OpenArchive">Archive</Button>
+            }
+            <Button Variant="ButtonVariant.Destructive" data-delete OnClick="OpenDelete">Delete</Button>
+        </div>
+    </header>
+    <div class="project-browse">
+    <ProjectBrowseNav ProjectId="@ProjectId" Current="@Current" />
+    <div class="browse-main">
+        @ChildContent
+        @if (error is not null && mode == Mode.None)
+        {
+            <p class="alert" role="alert">@error</p>
+        }
+        @if (mode == Mode.Edit)
+        {
+            <Dialog LabelledBy="edit-project-title" Close="Close">
+                <form data-edit-dialog @onsubmit="Submit" @onsubmit:preventDefault="true">
+                    <h2 id="edit-project-title">Rename project</h2>
+                    <label for="display-name">Display name</label>
+                    <input id="display-name" value="@draft" @oninput="OnInput" />
+                    @if (error is not null)
+                    {
+                        <p class="alert" role="alert">@error</p>
+                    }
+                    <div class="dialog-actions">
+                        <Button data-cancel OnClick="Close">Cancel</Button>
+                        <Button Variant="ButtonVariant.Primary" Type="submit">Save</Button>
+                    </div>
+                </form>
+            </Dialog>
+        }
+        else if (mode == Mode.Archive)
+        {
+            <ConfirmDialog Title="Archive this project?" Body="You can restore it later. It leaves the active project list until then."
+                ConfirmLabel="Archive" Error="@error" Confirm="ConfirmArchive" Cancel="Close" />
+        }
+        else if (mode == Mode.Restore)
+        {
+            <ConfirmDialog Title="Restore this project?" Body="It returns to the project list."
+                ConfirmLabel="Restore" Error="@error" Confirm="ConfirmRestore" Cancel="Close" />
+        }
+        else if (mode == Mode.Delete)
+        {
+            <ConfirmDialog Title="Delete this project permanently?" Body="This cannot be undone. The plans, documents, and reviews in this project are removed."
+                ConfirmLabel="Delete permanently" ConfirmVariant="ButtonVariant.Destructive" Error="@error" Confirm="ConfirmDelete" Cancel="Close" />
+        }
+    </div>
+    </div>
+</div>
+
+@code {
+    private enum Mode
+    {
+        None,
+        Edit,
+        Archive,
+        Restore,
+        Delete,
+    }
+
+    [Parameter, EditorRequired]
+    public string ProjectId { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public string DisplayName { get; set; } = "";
+
+    [Parameter]
+    public string? FolderPath { get; set; }
+
+    [Parameter]
+    public bool Archived { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Current { get; set; } = "";
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public EventCallback Changed { get; set; }
+
+    private string draft = "";
+
+    private string? syncedName;
+
+    private bool? wasArchived;
+
+    private string? error;
+
+    private Mode mode;
+
+    protected override void OnParametersSet()
+    {
+        if (wasArchived == true && !Archived && mode == Mode.Restore)
+        {
+            mode = Mode.None;
+        }
+
+        wasArchived = Archived;
+
+        if (syncedName == DisplayName)
+        {
+            return;
+        }
+
+        syncedName = DisplayName;
+        draft = DisplayName;
+        if (mode == Mode.Edit)
+        {
+            mode = Mode.None;
+        }
+    }
+
+    private void OpenEdit()
+    {
+        draft = DisplayName;
+        error = null;
+        mode = Mode.Edit;
+    }
+
+    private void OpenArchive()
+    {
+        error = null;
+        mode = Mode.Archive;
+    }
+
+    private void OpenRestore()
+    {
+        error = null;
+        mode = Mode.Restore;
+    }
+
+    private void OpenDelete()
+    {
+        error = null;
+        mode = Mode.Delete;
+    }
+
+    private void Close() => mode = Mode.None;
+
+    private void OnInput(ChangeEventArgs change) => draft = change.Value?.ToString() ?? "";
+
+    private async Task Submit()
+    {
+        RenameOutcome outcome = await Plans.RenameProjectAsync(new ProjectId(ProjectId), draft, CancellationToken.None);
+        if (outcome is RenameOutcome.Refused refused)
+        {
+            error = refused.Error;
+            return;
+        }
+
+        error = null;
+        await Changed.InvokeAsync();
+    }
+
+    private async Task ConfirmArchive()
+    {
+        ProjectChange outcome = await Plans.ArchiveProjectAsync(new ProjectId(ProjectId), CancellationToken.None);
+        if (outcome is ProjectChange.Refused refused)
+        {
+            error = refused.Error;
+            return;
+        }
+
+        Navigation.NavigateTo("/projects");
+    }
+
+    private async Task ConfirmRestore()
+    {
+        ProjectChange outcome = await Plans.RestoreProjectAsync(new ProjectId(ProjectId), CancellationToken.None);
+        if (outcome is ProjectChange.Refused refused)
+        {
+            error = refused.Error;
+            return;
+        }
+
+        error = null;
+        await Changed.InvokeAsync();
+    }
+
+    private async Task ConfirmDelete()
+    {
+        ProjectChange outcome = await Plans.DeleteProjectAsync(new ProjectId(ProjectId), CancellationToken.None);
+        if (outcome is ProjectChange.Refused refused)
+        {
+            error = refused.Error;
+            return;
+        }
+
+        ProjectChange.Done done = (ProjectChange.Done)outcome;
+        await Reviews.RemoveRevisionsAsync(done.RevisionIds, CancellationToken.None);
+        Navigation.NavigateTo("/projects");
+    }
+}

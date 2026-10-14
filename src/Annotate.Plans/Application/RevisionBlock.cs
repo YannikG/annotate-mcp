@@ -9,4 +9,5 @@ public sealed record RevisionBlock(
     int Start,
     int End,
     BlockChange Change,
-    string ContentHash);
+    string ContentHash,
+    bool Locked = false);

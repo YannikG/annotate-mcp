@@ -1,0 +1,49 @@
+<div class="review-tabs" role="tablist" aria-label="Documents">
+    <button type="button" class="tab" role="tab" data-tab="active" aria-selected="@(Tab == ProjectDocumentTab.Active ? "true" : "false")" @onclick="() => TabSelected.InvokeAsync(ProjectDocumentTab.Active)">
+        <span class="tab-label">Documents</span>
+        <span class="tab-count">@Listing.Active</span>
+    </button>
+    <button type="button" class="tab" role="tab" data-tab="archived" aria-selected="@(Tab == ProjectDocumentTab.Archived ? "true" : "false")" @onclick="() => TabSelected.InvokeAsync(ProjectDocumentTab.Archived)">
+        <span class="tab-label">Archived</span>
+        <span class="tab-count">@Listing.Archived</span>
+    </button>
+</div>
+@if (Listing.Rows.Count == 0)
+{
+    <EmptyState Title="@(Tab == ProjectDocumentTab.Archived ? "No archived documents." : "This project has no documents.")" />
+}
+else
+{
+    <ul class="stack plan-list" data-document-list>
+        @foreach (ProjectDocumentRow row in Listing.Rows)
+        {
+            <DocumentListItem DocumentId="@row.DocumentId" Title="@row.Title" RevisionNumber="@row.RevisionNumber" UpdatedAt="@row.UpdatedAt" Status="@Badge(row)" StatusKey="@Tone(row)" />
+        }
+    </ul>
+}
+
+@code {
+    [Parameter, EditorRequired] public ProjectDocumentListing Listing { get; set; } = ProjectDocumentListing.Empty;
+    [Parameter] public ProjectDocumentTab Tab { get; set; }
+    [Parameter] public EventCallback<ProjectDocumentTab> TabSelected { get; set; }
+
+    private static string Badge(ProjectDocumentRow row)
+    {
+        if (row.ReadOnly)
+        {
+            return "Read-only";
+        }
+
+        return row.Status == ReviewStatus.ChangesRequested ? "Changes requested" : "";
+    }
+
+    private static string Tone(ProjectDocumentRow row)
+    {
+        if (row.ReadOnly)
+        {
+            return StatusTone.None;
+        }
+
+        return row.Status == ReviewStatus.ChangesRequested ? StatusTone.Changes : StatusTone.None;
+    }
+}

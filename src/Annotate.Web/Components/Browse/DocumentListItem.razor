@@ -1,0 +1,24 @@
+@using System.Globalization
+
+<li class="plan-card" data-document-card>
+    <div class="card-heading">
+        <a class="card-title" href="/documents/@DocumentId">@Title</a>
+        @if (!string.IsNullOrEmpty(Status))
+        {
+            <Badge Tone="@StatusKey">@Status</Badge>
+        }
+    </div>
+    <div class="card-meta">
+        <span>v@(RevisionNumber)</span>
+        <span>Updated <time datetime="@UpdatedAt.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)">@UpdatedAt.ToUniversalTime().ToString("dd MMM yyyy, HH:mm", CultureInfo.InvariantCulture) UTC</time></span>
+    </div>
+</li>
+
+@code {
+    [Parameter, EditorRequired] public string DocumentId { get; set; } = "";
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public int RevisionNumber { get; set; }
+    [Parameter] public DateTimeOffset UpdatedAt { get; set; }
+    [Parameter] public string Status { get; set; } = "";
+    [Parameter] public string StatusKey { get; set; } = "none";
+}

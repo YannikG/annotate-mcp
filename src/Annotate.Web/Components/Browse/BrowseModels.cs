@@ -39,6 +39,16 @@ public sealed record PlanViewModel(
 public sealed record RevisionRow(
     string RevisionId, int Number, string CreatedAt, string Status, string? Agent = null, string? Model = null);
 
+public sealed record DocumentViewModel(
+    string Title,
+    string? ProjectId,
+    string? ProjectName,
+    string? PendingReviewId,
+    bool ReadOnly,
+    bool Archived,
+    RevisionViewModel? Selected,
+    string? Error = null);
+
 public sealed record RevisionViewModel(
     int Number, IReadOnlyList<BlockRow> Blocks, string Markdown = "",
     IReadOnlyList<Annotate.Reviews.Application.Annotation>? Annotations = null,
@@ -48,4 +58,4 @@ public sealed record RevisionViewModel(
     string? PlanId = null,
     string? ReviewId = null);
 
-public sealed record BlockRow(string Text, int Start, int End, string Change, string Key = "");
+public sealed record BlockRow(string Text, int Start, int End, string Change, string Key = "", bool Locked = false);

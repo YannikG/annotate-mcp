@@ -4,6 +4,8 @@
 @inject ISelectionReader Selection
 @inject IAutoClosePreference Preferences
 @inject IReportScript Report
+@inject IServiceProvider Services
+@inject NavigationManager Navigation
 
 <PageTitle>@(string.IsNullOrEmpty(planTitle) ? "Review" : planTitle) · Annotate</PageTitle>
 
@@ -21,7 +23,7 @@ else if (failed)
 }
 else if (model is not null)
 {
-    <ReviewView Model="model" Key="OnKey" Approve="Approve" Download="Download" DismissReport="DismissReport" AutoCloseChanged="OnAutoClose" RequestChanges="RequestChanges" OpenPrompt="OpenPrompt" CloseDialog="CloseDialog" PreviousPrompt="PreviousPrompt" NextPrompt="NextPrompt" FinishPrompt="FinishPrompt" SaveNote="SaveNote" EditNote="EditNote" CancelNote="CancelNote" RetryDraft="RetryDraft" Select="OnSelect" Annotate="OnAnnotate" Changed="RefreshAnnotations" RemovePhrase="RemovePhrase" />
+    <ReviewView Model="model" Key="OnKey" Approve="Approve" Download="Download" DismissReport="DismissReport" AutoCloseChanged="OnAutoClose" RequestChanges="RequestChanges" OpenPrompt="OpenPrompt" CloseDialog="CloseDialog" PreviousPrompt="PreviousPrompt" NextPrompt="NextPrompt" FinishPrompt="FinishPrompt" SaveNote="SaveNote" EditNote="EditNote" CancelNote="CancelNote" RetryDraft="RetryDraft" Select="OnSelect" Annotate="OnAnnotate" Changed="RefreshAnnotations" RemovePhrase="RemovePhrase" ToggleLock="ToggleLock" />
 }
 
 @code {
@@ -66,6 +68,12 @@ else if (model is not null)
 
     private string? projectName;
 
+    private bool allowApprove = true;
+
+    private string? documentId;
+
+    private readonly HashSet<string> lockedBlocks = new(StringComparer.Ordinal);
+
     protected override async Task OnParametersSetAsync()
     {
         if (loadedId == Id)
@@ -91,6 +99,9 @@ else if (model is not null)
         planTitle = "";
         projectId = null;
         projectName = null;
+        allowApprove = true;
+        documentId = null;
+        lockedBlocks.Clear();
         ReviewDetail? review;
         try
         {
@@ -136,10 +147,33 @@ else if (model is not null)
         prompts.Load(review.Prompts, review.Answers);
         if (revision is null)
         {
-            failed = true;
-            return;
+            DocumentReviewLoad loaded = await DocumentReviewLoad.Load(
+                Services, Navigation, review.RevisionId.Value, CancellationToken.None);
+            if (loaded.Redirected)
+            {
+                return;
+            }
+
+            if (loaded.Missing || loaded.Revision is null)
+            {
+                failed = true;
+                return;
+            }
+
+            revision = loaded.Revision;
+            allowApprove = false;
+            documentId = revision.PlanId.Value;
+            planTitle = loaded.Title;
+            projectId = loaded.ProjectId;
+            projectName = loaded.ProjectName;
+            foreach (string key in loaded.LockedKeys)
+            {
+                lockedBlocks.Add(key);
+            }
         }
 
+        if (allowApprove)
+        {
         autoClose = await Preferences.ReadAsync(CancellationToken.None);
         try
         {
@@ -157,6 +191,7 @@ else if (model is not null)
             planTitle = "";
             projectId = null;
             projectName = null;
+        }
         }
 
         Publish();
@@ -227,6 +262,14 @@ else if (model is not null)
         }
 
         TextSelection chosen = selection!;
+        if (Locked(chosen.BlockOrdinal))
+        {
+            notice = "This block is locked.";
+            toolbar = null;
+            Publish();
+            return;
+        }
+
         toolbar = null;
         if (kind is AnnotationKind.Replacement or AnnotationKind.Insertion or AnnotationKind.Comment)
         {
@@ -379,7 +422,7 @@ else if (model is not null)
         model = new ReviewViewModel(
             StatusTone.Label(status),
             pending,
-            pending && !prompts.Any && drafts.Count == 0 && threads.Count == 0,
+            pending && allowApprove && !prompts.Any && drafts.Count == 0 && threads.Count == 0,
             revision.Summary,
             revision.StoryUrl,
             revision.AcceptanceCriteria,
@@ -403,78 +446,11 @@ else if (model is not null)
             revision.Attribution,
             projectId,
             projectName,
-            revision.PlanId.Value,
+            allowApprove ? revision.PlanId.Value : null,
             Id,
             revision.Blocks.Select(block => block.Key).ToArray(),
-            BlockNames.Of(revision));
-    }
-
-    private Task OnAnnotate(string key) => OnKey(new ReviewKey(key, ""));
-
-    private async Task OnSelect()
-    {
-        if (!pending || notePrompt is not null || diff is not null)
-        {
-            return;
-        }
-
-        TextSelection? selection = await Selection.ReadAsync();
-        toolbar = Usable(selection) && selection!.Box is not null ? selection : null;
-        Publish();
-    }
-
-    private static bool Usable(TextSelection? selection) =>
-        selection is not null && selection.Text.Length > 0 && selection.End > selection.Start;
-
-    private static string NoteTitle(AnnotationKind kind) => kind switch
-    {
-        AnnotationKind.Replacement => "Replace",
-        AnnotationKind.Insertion => "Insert",
-        AnnotationKind.Comment => "Comment",
-        _ => "Note",
-    };
-
-    private sealed record NotePrompt(AnnotationKind Kind, TextSelection Selection)
-    {
-        public string Id { get; } = Guid.NewGuid().ToString();
-        public string CreatedAt { get; } = DateTimeOffset.UtcNow.ToString("u");
-    }
-
-    private void OpenPrompt(string id)
-    {
-        if (prompts.Open(id, pending))
-        {
-            Publish();
-        }
-    }
-
-    private void CloseDialog()
-    {
-        prompts.Close();
-        Publish();
-    }
-
-    private void PreviousPrompt()
-    {
-        if (prompts.Previous())
-        {
-            Publish();
-        }
-    }
-
-    private async Task NextPrompt(DecisionDraft draft)
-    {
-        if (await prompts.Next(draft, Reviews, Id))
-        {
-            Publish();
-        }
-    }
-
-    private async Task FinishPrompt(DecisionDraft draft)
-    {
-        if (await prompts.Finish(draft, Reviews, Id))
-        {
-            Publish();
-        }
+            BlockNames.Of(revision),
+            allowApprove,
+            allowApprove ? null : lockedBlocks);
     }
 }

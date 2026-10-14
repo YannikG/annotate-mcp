@@ -4,7 +4,9 @@ internal sealed class Revision
 {
     public string Id { get; private set; }
 
-    public string PlanId { get; private set; }
+    public string? PlanId { get; private set; }
+
+    public string? DocumentId { get; private set; }
 
     public int Number { get; private set; }
 
@@ -30,7 +32,7 @@ internal sealed class Revision
 
     public Revision(
         string id,
-        string planId,
+        string? planId,
         int number,
         string? parentRevisionId,
         string markdown,
@@ -41,10 +43,12 @@ internal sealed class Revision
         string? agent = null,
         string? model = null,
         string? clientName = null,
-        string? clientVersion = null)
+        string? clientVersion = null,
+        string? documentId = null)
     {
         Id = id;
         PlanId = planId;
+        DocumentId = documentId;
         Number = number;
         ParentRevisionId = parentRevisionId;
         Markdown = markdown;

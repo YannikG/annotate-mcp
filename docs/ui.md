@@ -103,11 +103,14 @@ Reports are standalone HTML and cannot link `tokens.css`, so `PlanReportStyles` 
 | Action | The one place |
 | --- | --- |
 | Continue a pending review | The plan page header (Continue review) |
+| Continue a pending document review | The document page header (Continue review) |
+| Make a document read-only, or lift it | The document page header |
+| Lock or unlock a block | The document review, under the text |
 | Download a plan report | The plan page toolbar, when the selected revision is approved (the review page's Approve and Download is part of submitting a review) |
 | Annotate (delete, replace, insert, comment) | The selection popup beside the quote |
 | Submit review (approve, request changes) | Review actions: right panel on desktop, Actions flyout below 1100px |
 | Answer a decision | The decision dialog, opened from the card's Answer button |
-| Project edit, archive, delete | The project page header |
+| Project edit, archive, delete | The project header, on both Plans and Documents |
 | Theme switch | The shared navigation |
 | Copy a plan or review id | The editor toolbar copy menu |
 | Copy a heading's review id and block key | The copy icon at the start of that heading |
@@ -119,7 +122,7 @@ The heading copy icon shows the tooltip “Copies the review id and this block i
 
 ## Layout
 
-Breakpoints: 600px, 700px, 800px, and 1100px. The only structural one is 1100px: below it side panels become flyouts and review submission moves into the Actions disclosure; at or above it the page is three columns. The shared navigation stays on one row at every width. The editor toolbar is sticky beneath the navigation. The footer with keyboard hints shows on plan, revision, and review pages only.
+Breakpoints: 600px, 700px, 800px, and 1100px. The only structural one is 1100px: below it side panels become flyouts and review submission moves into the Actions disclosure; at or above it the page is three columns. The shared navigation stays on one row at every width. Project browse puts the project header across the full width. Below it, Plans and Documents sit in a side rail level with the list tabs; the current item uses the accent fill. Below 700px that rail becomes a row above the list. The editor toolbar is sticky beneath the navigation. The footer with keyboard hints shows on plan, revision, and review pages only.
 
 ## Accessibility
 

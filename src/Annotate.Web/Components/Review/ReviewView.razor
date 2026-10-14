@@ -20,11 +20,16 @@
         }
         <div class="nav-right @(actionsOpen ? "is-open" : null)" id="@actionsId" role="group" aria-label="Review actions">
             <p class="countdown" hidden="@(!Model.CountdownRunning)">Submitting in <span data-countdown data-running="@(Model.CountdownRunning ? "true" : "false")">@Model.Countdown</span></p>
+            @if (Model.AllowApprove)
+            {
             <label class="check">
                 <input type="checkbox" data-auto-close checked="@Model.AutoCloseOnSubmit" @onchange="OnAutoClose" />
                 Auto-close
             </label>
+            }
             <Button Variant="ButtonVariant.Destructive" data-request-changes Disabled="@(!Model.Pending)" OnClick="AskRequestChanges">Request changes</Button>
+            @if (Model.AllowApprove)
+            {
             <div class="split">
                 <Button Variant="ButtonVariant.Primary" data-approve Disabled="@(!Model.CanApprove)" OnClick="Approve">Approve</Button>
                 <button type="button" class="split-toggle" aria-haspopup="menu" aria-expanded="@(menuOpen ? "true" : "false")" aria-label="Approve and Download report" disabled="@(!Model.CanApprove)" @onclick="ToggleMenu">
@@ -35,6 +40,7 @@
                     <button type="button" class="split-item" role="menuitem" data-download disabled="@(!Model.CanApprove)" @onclick="ChooseDownload">Approve and Download report</button>
                 </div>
             </div>
+            }
         </div>
         </div>
         </Trailing>
@@ -102,6 +108,20 @@
                 </section>
             }
         </div>
+        @if (!Model.AllowApprove && Model.BlockKeys is { Count: > 0 })
+        {
+            <ul class="stack" data-block-locks>
+                @foreach (string key in Model.BlockKeys)
+                {
+                    bool locked = Model.LockedKeys?.Contains(key) == true;
+                    string name = Model.BlockNames is not null && Model.BlockNames.TryGetValue(key, out string? found) && found.Length > 0 ? found : key;
+                    <li>
+                        <span>@name</span>
+                        <Button data-lock-block="@key" OnClick="() => ToggleLock.InvokeAsync(key)">@(locked ? "Unlock" : "Lock")</Button>
+                    </li>
+                }
+            </ul>
+        }
     </div>
         </ChildContent>
     </DocumentBoard>
@@ -111,7 +131,10 @@
             <p data-report-failure>Report was not downloaded</p>
             <p data-report-error>@Model.ReportFailure</p>
             <div class="alert-actions">
+                @if (Model.AllowApprove)
+                {
                 <Button data-approve-without-download Disabled="@(!Model.CanApprove)" OnClick="Approve">Approve without download</Button>
+                }
                 <Button Variant="ButtonVariant.Quiet" data-dismiss-report OnClick="DismissReport">Dismiss</Button>
             </div>
         </div>
@@ -205,6 +228,9 @@
 
     [Parameter]
     public EventCallback<string> RemovePhrase { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ToggleLock { get; set; }
 
     private int dropCount;
 

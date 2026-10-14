@@ -5,6 +5,9 @@ You mostly see the results: a new revision, a review URL in chat, or feedback af
 | Tool | What you notice |
 | --- | --- |
 | `annotate_plan` | A new plan or revision shows up, and the agent should paste you a review link. |
+| `annotate_document` | A new document or revision shows up, and the agent should paste you a review link. There is no approval. |
+| `await_document_review` | The agent is blocked until you request changes or set the document read-only. |
+| `archive_document` | A document leaves the active list, same idea as archive in the UI. |
 | `await_plan_review` | The agent is blocked on your decision for that review. |
 | `archive_plan` | A finished plan leaves the active lists, same idea as archive in the UI. |
 | `get_plan_markdown_guide` | The agent calls it before a plan with diagrams, tables, or decision fences. |

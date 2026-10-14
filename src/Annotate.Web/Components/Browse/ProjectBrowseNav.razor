@@ -1,0 +1,12 @@
+<nav class="browse-nav" aria-label="Project">
+    <a class="browse-link" href="/projects/@ProjectId" aria-current="@(Current == "plans" ? "page" : null)">Plans</a>
+    <a class="browse-link" href="/projects/@ProjectId/documents" aria-current="@(Current == "documents" ? "page" : null)">Documents</a>
+</nav>
+
+@code {
+    [Parameter, EditorRequired]
+    public string ProjectId { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public string Current { get; set; } = "";
+}

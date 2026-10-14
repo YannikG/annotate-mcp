@@ -1,0 +1,61 @@
+@page "/projects/{Id}/documents"
+@inject IPlans Plans
+@inject IProjectDocumentPages Pages
+
+<PageTitle>@(project?.DisplayName ?? "Documents") · Annotate</PageTitle>
+
+@if (missing)
+{
+    <div class="frame"><h1>Not found</h1></div>
+}
+else if (project is not null && listing is not null)
+{
+    <ProjectBrowse ProjectId="@Id" DisplayName="@project.DisplayName" FolderPath="@project.FolderPath"
+        Archived="@project.Archived" Current="documents" Changed="Load">
+        <DocumentTabs Listing="listing" Tab="tab" TabSelected="SelectTab" />
+    </ProjectBrowse>
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private ProjectDocumentListing? listing;
+    private ProjectSummary? project;
+    private bool missing;
+    private string? loadedId;
+    private ProjectDocumentTab tab = ProjectDocumentTab.Active;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (loadedId == Id)
+        {
+            return;
+        }
+
+        loadedId = Id;
+        tab = ProjectDocumentTab.Active;
+        await Load();
+    }
+
+    private async Task SelectTab(ProjectDocumentTab next)
+    {
+        tab = next;
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        ProjectSummary? found = await Plans.ProjectAsync(new ProjectId(Id), CancellationToken.None);
+        if (found is null)
+        {
+            missing = true;
+            listing = null;
+            project = null;
+            return;
+        }
+
+        missing = false;
+        project = found;
+        listing = await Pages.PageAsync(found.ProjectId, tab, 1, CancellationToken.None);
+    }
+}

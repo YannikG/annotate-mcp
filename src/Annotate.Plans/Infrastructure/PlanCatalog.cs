@@ -115,8 +115,14 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
             .Where(plan => plan.ProjectId == project.Id)
             .Select(plan => plan.Id)
             .ToListAsync(cancellationToken);
+        List<string> documentIds = await db.Documents
+            .Where(document => document.ProjectId == project.Id)
+            .Select(document => document.Id)
+            .ToListAsync(cancellationToken);
         List<Revision> revisions = await db.Revisions
-            .Where(revision => planIds.Contains(revision.PlanId))
+            .Where(revision =>
+                (revision.PlanId != null && planIds.Contains(revision.PlanId))
+                || (revision.DocumentId != null && documentIds.Contains(revision.DocumentId)))
             .OrderBy(revision => revision.Number)
             .ToListAsync(cancellationToken);
         foreach (Revision revision in revisions)
@@ -238,6 +244,11 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
             return new DiffOutcome.Refused("Revisions belong to different plans.");
         }
 
+        if (left.DocumentId != right.DocumentId)
+        {
+            return new DiffOutcome.Refused("Revisions belong to different documents.");
+        }
+
         if (left.Id == right.Id)
         {
             return new DiffOutcome.Lines([]);
@@ -349,8 +360,8 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
 
         string[] ids = plans.Select(plan => plan.Id).ToArray();
         return await db.Revisions
-            .Where(revision => ids.Contains(revision.PlanId))
-            .GroupBy(revision => revision.PlanId)
+            .Where(revision => revision.PlanId != null && ids.Contains(revision.PlanId))
+            .GroupBy(revision => revision.PlanId!)
             .Select(group => new { group.Key, Count = group.Count() })
             .ToDictionaryAsync(group => group.Key, group => group.Count, cancellationToken);
     }

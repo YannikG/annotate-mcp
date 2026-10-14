@@ -1,0 +1,104 @@
+@page "/documents/{Id}"
+@inject IDocuments Documents
+@inject IPlans Plans
+@inject IReviews Reviews
+@inject NavigationManager Navigation
+
+<PageTitle>@(model?.Title ?? "Document") · Annotate</PageTitle>
+
+@if (missing)
+{
+    <div class="frame"><h1>Not found</h1></div>
+}
+else if (model is not null)
+{
+    <DocumentView Model="model" Archive="Archive" Restore="Restore" Delete="Delete" MarkReadOnly="MarkReadOnly" ClearReadOnly="ClearReadOnly" />
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private DocumentViewModel? model;
+    private bool missing;
+
+    protected override async Task OnParametersSetAsync() => await Load();
+
+    private async Task Load()
+    {
+        DocumentDetail? document = await Documents.DocumentAsync(new DocumentId(Id), CancellationToken.None);
+        if (document is null)
+        {
+            model = null;
+            missing = true;
+            return;
+        }
+
+        missing = false;
+        PlanRevision? newest = document.Revisions.OrderBy(item => item.Number).LastOrDefault();
+        string? pendingReviewId = null;
+        RevisionViewModel? selected = null;
+        if (newest is not null)
+        {
+            ReviewDetail? review = await Reviews.ForRevisionAsync(
+                new Annotate.Reviews.Application.RevisionId(newest.RevisionId.Value),
+                CancellationToken.None);
+            if (review?.Status == ReviewStatus.Pending)
+            {
+                pendingReviewId = review.Id.Value;
+            }
+
+            DocumentRevisionDetail? revision = await Documents.RevisionAsync(newest.RevisionId, CancellationToken.None);
+            if (revision is not null)
+            {
+                selected = RevisionBody.FromDocument(revision, review?.Annotations, review?.Id.Value);
+            }
+        }
+
+        ProjectSummary? project = await Plans.ProjectAsync(document.ProjectId, CancellationToken.None);
+        model = new DocumentViewModel(
+            document.Title,
+            project?.ProjectId.Value,
+            project?.DisplayName,
+            pendingReviewId,
+            document.ReadOnly,
+            document.Archived,
+            selected);
+    }
+
+    private async Task Archive() => await Change(await Documents.ArchiveAsync(new DocumentId(Id), CancellationToken.None));
+
+    private async Task Restore() => await Change(await Documents.RestoreAsync(new DocumentId(Id), CancellationToken.None));
+
+    private async Task MarkReadOnly() => await Change(await Documents.SetReadOnlyAsync(new DocumentId(Id), true, CancellationToken.None));
+
+    private async Task ClearReadOnly() => await Change(await Documents.SetReadOnlyAsync(new DocumentId(Id), false, CancellationToken.None));
+
+    private async Task Delete()
+    {
+        DocumentChange outcome = await Documents.DeleteAsync(new DocumentId(Id), CancellationToken.None);
+        if (outcome is DocumentChange.Refused refused)
+        {
+            if (model is not null)
+            {
+                model = model with { Error = refused.Error };
+            }
+
+            return;
+        }
+
+        DocumentChange.Done done = (DocumentChange.Done)outcome;
+        await Reviews.RemoveRevisionsAsync(done.RevisionIds, CancellationToken.None);
+        Navigation.NavigateTo(model?.ProjectId is null ? "/projects" : "/projects/" + model.ProjectId + "/documents");
+    }
+
+    private async Task Change(DocumentChange outcome)
+    {
+        if (outcome is DocumentChange.Refused refused && model is not null)
+        {
+            model = model with { Error = refused.Error };
+            return;
+        }
+
+        await Load();
+    }
+}
