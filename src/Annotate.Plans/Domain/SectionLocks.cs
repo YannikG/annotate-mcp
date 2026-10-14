@@ -9,30 +9,42 @@ internal static class SectionLocks
     {
         foreach (string key in locks)
         {
-            StoredBlock? previous = parent.FirstOrDefault(block => block.BlockKey == key);
-            StoredBlock? current = next.FirstOrDefault(block => block.BlockKey == key);
-            if (previous is null
-                || current is null
-                || previous.ContentHash != current.ContentHash
-                || previous.SectionPath != current.SectionPath)
+            int previousIndex = IndexOf(parent, key);
+            if (previousIndex < 0)
             {
-                return true;
+                continue;
             }
-        }
 
-        foreach (string path in HeadingPaths(locks, parent))
-        {
-            StoredBlock[] before = parent.Where(block => block.SectionPath == path).ToArray();
-            StoredBlock[] after = next.Where(block => block.SectionPath == path).ToArray();
-            if (before.Length != after.Length)
+            int currentIndex = IndexOf(next, key);
+            if (currentIndex < 0)
             {
                 return true;
             }
 
-            for (int index = 0; index < before.Length; index++)
+            StoredBlock previous = parent[previousIndex];
+            StoredBlock current = next[currentIndex];
+            if (previous.ContentHash != current.ContentHash || previous.SectionPath != current.SectionPath)
             {
-                if (before[index].BlockKey != after[index].BlockKey
-                    || before[index].ContentHash != after[index].ContentHash)
+                return true;
+            }
+
+            if (previous.Kind != "Heading")
+            {
+                continue;
+            }
+
+            int previousEnd = EndOfSection(parent, previousIndex);
+            int currentEnd = EndOfSection(next, currentIndex);
+            if (previousEnd - previousIndex != currentEnd - currentIndex)
+            {
+                return true;
+            }
+
+            for (int offset = 0; previousIndex + offset < previousEnd; offset++)
+            {
+                StoredBlock before = parent[previousIndex + offset];
+                StoredBlock after = next[currentIndex + offset];
+                if (before.BlockKey != after.BlockKey || before.ContentHash != after.ContentHash)
                 {
                     return true;
                 }
@@ -44,30 +56,45 @@ internal static class SectionLocks
 
     public static HashSet<string> Covered(IReadOnlyList<StoredBlock> blocks, IReadOnlySet<string> locks)
     {
-        HashSet<string> paths = HeadingPaths(locks, blocks);
         HashSet<string> covered = new(locks, StringComparer.Ordinal);
-        foreach (StoredBlock block in blocks)
+        foreach (string key in locks)
         {
-            if (paths.Contains(block.SectionPath))
+            int start = IndexOf(blocks, key);
+            if (start < 0 || blocks[start].Kind != "Heading")
             {
-                covered.Add(block.BlockKey);
+                continue;
+            }
+
+            for (int index = start; index < EndOfSection(blocks, start); index++)
+            {
+                covered.Add(blocks[index].BlockKey);
             }
         }
 
         return covered;
     }
 
-    private static HashSet<string> HeadingPaths(IReadOnlyCollection<string> locks, IReadOnlyList<StoredBlock> blocks)
+    private static int EndOfSection(IReadOnlyList<StoredBlock> blocks, int heading)
     {
-        HashSet<string> paths = new(StringComparer.Ordinal);
-        foreach (StoredBlock block in blocks)
+        int index = heading + 1;
+        while (index < blocks.Count && blocks[index].Kind != "Heading")
         {
-            if (block.Kind == "Heading" && locks.Contains(block.BlockKey))
+            index++;
+        }
+
+        return index;
+    }
+
+    private static int IndexOf(IReadOnlyList<StoredBlock> blocks, string key)
+    {
+        for (int index = 0; index < blocks.Count; index++)
+        {
+            if (blocks[index].BlockKey == key)
             {
-                paths.Add(block.SectionPath);
+                return index;
             }
         }
 
-        return paths;
+        return -1;
     }
 }

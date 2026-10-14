@@ -35,13 +35,13 @@
                         }
                         @if (Model.Archived)
                         {
-                            <Button data-restore OnClick="Restore">Restore</Button>
+                            <Button data-restore OnClick="() => mode = Mode.Restore">Restore</Button>
                         }
                         else
                         {
-                            <Button data-archive OnClick="Archive">Archive</Button>
+                            <Button data-archive OnClick="() => mode = Mode.Archive">Archive</Button>
                         }
-                        <Button Variant="ButtonVariant.Destructive" data-delete OnClick="Delete">Delete</Button>
+                        <Button Variant="ButtonVariant.Destructive" data-delete OnClick="() => mode = Mode.Delete">Delete</Button>
                     </div>
                 </header>
             </Header>
@@ -62,8 +62,25 @@
         <p class="alert" role="alert">@Model.Error</p>
     }
 </div>
+@if (mode == Mode.Archive)
+{
+    <ConfirmDialog Title="Archive this document?" Body="You can restore it later. It leaves the active document list until then."
+        ConfirmLabel="Archive" Error="@Model.Error" Confirm="Archive" Cancel="Close" />
+}
+else if (mode == Mode.Restore)
+{
+    <ConfirmDialog Title="Restore this document?" Body="It returns to the active document list."
+        ConfirmLabel="Restore" Error="@Model.Error" Confirm="Restore" Cancel="Close" />
+}
+else if (mode == Mode.Delete)
+{
+    <ConfirmDialog Title="Delete this document permanently?" Body="This cannot be undone. The document and its reviews are removed."
+        ConfirmLabel="Delete permanently" ConfirmVariant="ButtonVariant.Destructive" Error="@Model.Error" Confirm="Delete" Cancel="Close" />
+}
 
 @code {
+    private enum Mode { None, Archive, Restore, Delete }
+
     [Parameter, EditorRequired] public DocumentViewModel Model { get; set; } = default!;
     [Parameter] public EventCallback Archive { get; set; }
     [Parameter] public EventCallback Restore { get; set; }
@@ -73,6 +90,23 @@
     [Parameter] public EventCallback DownloadReport { get; set; }
     [Parameter] public EventCallback<string> RevisionChanged { get; set; }
 
+    private Mode mode;
+
+    private bool? wasArchived;
+
     private RevisionRow? SelectedRevision =>
         Model.Revisions.FirstOrDefault(revision => revision.RevisionId == Model.SelectedId);
+
+    protected override void OnParametersSet()
+    {
+        if ((wasArchived == false && Model.Archived && mode == Mode.Archive)
+            || (wasArchived == true && !Model.Archived && mode == Mode.Restore))
+        {
+            mode = Mode.None;
+        }
+
+        wasArchived = Model.Archived;
+    }
+
+    private void Close() => mode = Mode.None;
 }

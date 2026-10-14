@@ -297,7 +297,11 @@ else if (model is not null)
             return;
         }
 
-        ReviewDiffAttempt attempt = await ReviewDiff.Open(Plans, revision, CancellationToken.None);
+        ReviewDiffAttempt attempt = await ReviewDiff.Open(
+            Plans,
+            documentId is null ? null : Services.GetService<IDocuments>(),
+            revision,
+            CancellationToken.None);
         if (!attempt.Changed)
         {
             return;
@@ -369,6 +373,13 @@ else if (model is not null)
         string reviewId = Id;
         await draftSave;
         if (reviewId != Id || !pending) return;
+        if (await DocumentReadOnly())
+        {
+            notice = "Document is read-only.";
+            Publish();
+            return;
+        }
+
         DecideOutcome outcome = await Reviews.RequestChangesAsync(
             new ReviewId(reviewId),
             drafts.ToArray(),

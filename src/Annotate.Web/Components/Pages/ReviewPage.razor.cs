@@ -45,15 +45,23 @@ public partial class ReviewPage
             return;
         }
 
-        if (locked)
+        DocumentRevisionDetail? refreshed = revision is null
+            ? null
+            : await documents.RevisionAsync(
+                new Annotate.Plans.Application.RevisionId(revision.RevisionId.Value),
+                CancellationToken.None);
+        if (refreshed is null)
         {
-            lockedBlocks.Remove(blockKey);
-        }
-        else
-        {
-            lockedBlocks.Add(blockKey);
+            notice = "Revision was not found.";
+            Publish();
+            return;
         }
 
+        lockedBlocks.Clear();
+        foreach (RevisionBlock block in refreshed.Blocks.Where(block => block.Locked))
+        {
+            lockedBlocks.Add(block.Key);
+        }
         notice = null;
         Publish();
     }
@@ -64,6 +72,19 @@ public partial class ReviewPage
         toolbar = null;
         Services.GetService<IToast>()?.Show("This block is locked.");
         Publish();
+    }
+
+    private async Task<bool> DocumentReadOnly()
+    {
+        if (documentId is null || Services.GetService<IDocuments>() is not IDocuments documents)
+        {
+            return false;
+        }
+
+        DocumentDetail? document = await documents.DocumentAsync(
+            new DocumentId(documentId),
+            CancellationToken.None);
+        return document?.ReadOnly == true;
     }
 
     private bool Locked(int ordinal) =>

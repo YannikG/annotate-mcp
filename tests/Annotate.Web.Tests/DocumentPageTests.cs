@@ -119,6 +119,35 @@ public sealed class DocumentPageTests
         Assert.Equal("disk full", alert.TextContent);
     }
 
+    [Fact]
+    public async Task ArchiveRestoreAndDeleteWaitForConfirmation()
+    {
+        (FakePlans plans, FakeDocuments documents, FakeReviews reviews) = Host();
+        using BunitContext context = BrowseHost.Open(plans, reviews);
+        context.Services.AddSingleton<IDocuments>(documents);
+        IRenderedComponent<DocumentPage> page = context.Render<DocumentPage>(parameters =>
+            parameters.Add(component => component.Id, "doc-1"));
+        page.WaitForAssertion(() => Assert.NotNull(page.Find("[data-archive]")));
+
+        page.Find("[data-archive]").Click();
+        Assert.Equal("Archive this document?", page.Find("[data-dialog] h2").TextContent);
+        page.Find("[data-cancel]").Click();
+        Assert.Empty(documents.Archived);
+
+        page.Find("[data-delete]").Click();
+        Assert.Equal("Delete this document permanently?", page.Find("[data-dialog] h2").TextContent);
+        page.Find("[data-cancel]").Click();
+        Assert.Empty(documents.Deleted);
+
+        documents.Documents["doc-1"] = documents.Documents["doc-1"]! with { Archived = true };
+        page = context.Render<DocumentPage>(parameters => parameters.Add(component => component.Id, "doc-1"));
+        page.WaitForAssertion(() => Assert.NotNull(page.Find("[data-restore]")));
+        page.Find("[data-restore]").Click();
+        Assert.Equal("Restore this document?", page.Find("[data-dialog] h2").TextContent);
+        page.Find("[data-cancel]").Click();
+        Assert.Empty(documents.Restored);
+    }
+
     private static (FakePlans Plans, FakeDocuments Documents, FakeReviews Reviews) Host()
     {
         FakePlans plans = new();

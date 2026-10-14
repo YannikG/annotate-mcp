@@ -112,6 +112,61 @@ public sealed class DocumentLifecycleTests
     }
 
     [Fact]
+    public async Task LockingAHeadingDoesNotLockALaterHeadingWithTheSameTitle()
+    {
+        await using OpenPlans open = await OpenPlans.Open();
+        await using ServiceProvider host = open.Plans();
+        IDocuments documents = host.GetRequiredService<IDocuments>();
+        string folder = Path.Combine(Path.GetTempPath(), "annotate-" + Guid.NewGuid().ToString("N"));
+        const string markdown = "# Notes\n\nFirst.\n\n# Notes\n\nSecond.\n";
+        DocumentSubmitOutcome.Created created = Assert.IsType<DocumentSubmitOutcome.Created>(
+            await documents.SubmitAsync(Request(markdown, folder, null), CancellationToken.None));
+        DocumentRevisionDetail first = Assert.IsType<DocumentRevisionDetail>(
+            await documents.RevisionAsync(created.Revision, CancellationToken.None));
+        string firstHeading = first.Blocks.First(block => Slice(first, block) == "# Notes").Key;
+        Assert.IsType<DocumentChange.Done>(
+            await documents.SetBlockLockAsync(created.Document, firstHeading, true, CancellationToken.None));
+
+        DocumentRevisionDetail locked = Assert.IsType<DocumentRevisionDetail>(
+            await documents.RevisionAsync(created.Revision, CancellationToken.None));
+        Assert.True(locked.Blocks.Single(block => Slice(locked, block) == "First.").Locked);
+        Assert.False(locked.Blocks.Single(block => Slice(locked, block) == "Second.").Locked);
+
+        DocumentSubmitOutcome.Created second = Assert.IsType<DocumentSubmitOutcome.Created>(
+            await documents.SubmitAsync(
+                Request(markdown.Replace("Second.", "Changed.", StringComparison.Ordinal), folder, created.Revision.Value),
+                CancellationToken.None));
+        Assert.Equal(2, second.Number);
+    }
+
+    [Fact]
+    public async Task ANewerLockDoesNotBlockContinuingAnOlderRevision()
+    {
+        await using OpenPlans open = await OpenPlans.Open();
+        await using ServiceProvider host = open.Plans();
+        IDocuments documents = host.GetRequiredService<IDocuments>();
+        string folder = Path.Combine(Path.GetTempPath(), "annotate-" + Guid.NewGuid().ToString("N"));
+        DocumentSubmitOutcome.Created first = Assert.IsType<DocumentSubmitOutcome.Created>(
+            await documents.SubmitAsync(Request("# Audit\n\nFirst.\n", folder, null), CancellationToken.None));
+        DocumentSubmitOutcome.Created second = Assert.IsType<DocumentSubmitOutcome.Created>(
+            await documents.SubmitAsync(
+                Request("# Audit\n\nFirst.\n\n## New\n\nLater.\n", folder, first.Revision.Value),
+                CancellationToken.None));
+        DocumentRevisionDetail newer = Assert.IsType<DocumentRevisionDetail>(
+            await documents.RevisionAsync(second.Revision, CancellationToken.None));
+        string newHeading = newer.Blocks.Single(block => Slice(newer, block) == "## New").Key;
+        Assert.IsType<DocumentChange.Done>(
+            await documents.SetBlockLockAsync(first.Document, newHeading, true, CancellationToken.None));
+
+        DocumentSubmitOutcome.Created branch = Assert.IsType<DocumentSubmitOutcome.Created>(
+            await documents.SubmitAsync(
+                Request("# Audit\n\nChanged from first.\n", folder, first.Revision.Value),
+                CancellationToken.None));
+
+        Assert.Equal(3, branch.Number);
+    }
+
+    [Fact]
     public async Task ArchiveAndProjectDeleteRemoveDocumentRevisions()
     {
         await using OpenPlans open = await OpenPlans.Open();

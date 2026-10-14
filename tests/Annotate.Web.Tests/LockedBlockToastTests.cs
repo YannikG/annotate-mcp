@@ -47,6 +47,15 @@ public sealed class LockedBlockToastTests
             null,
             null,
             false);
+        documents.SetBlockLock = (_, _, locked) =>
+        {
+            DocumentRevisionDetail revision = documents.Revisions["rev-1"]!;
+            documents.Revisions["rev-1"] = revision with
+            {
+                Blocks = revision.Blocks.Select(block => block with { Locked = locked }).ToArray(),
+            };
+            return new DocumentChange.Done([]);
+        };
         FakeReviews reviews = new()
         {
             Review = new ReviewDetail(
@@ -74,6 +83,9 @@ public sealed class LockedBlockToastTests
             parameters.Add(component => component.Id, "review-1"));
         IRenderedComponent<ToastHost> host = context.Render<ToastHost>();
         page.WaitForAssertion(() => Assert.NotNull(page.Find("[data-review]")));
+        IElement lockButton = page.Find("[data-lock-block='heading']");
+        Assert.Equal("Unlock block", lockButton.GetAttribute("aria-label"));
+        Assert.Null(lockButton.GetAttribute("tabindex"));
 
         await page.Find(".document").TriggerEventAsync("onmouseup", new MouseEventArgs());
 
@@ -86,5 +98,14 @@ public sealed class LockedBlockToastTests
 
         Assert.Equal("This block is locked.", host.Find("[data-toast]").TextContent);
         Assert.Empty(page.FindAll("[data-note-dialog]"));
+
+        await page.Find("[data-lock-block='heading']").ClickAsync();
+        Assert.Equal("Lock block", page.Find("[data-lock-block='heading']").GetAttribute("aria-label"));
+        await page.Find(".document").TriggerEventAsync("onmouseup", new MouseEventArgs());
+        Assert.NotNull(page.Find("[data-annotate-toolbar]"));
+
+        await page.Find("[data-lock-block='heading']").ClickAsync();
+        await page.Find(".document").TriggerEventAsync("onmouseup", new MouseEventArgs());
+        Assert.Empty(page.FindAll("[data-annotate-toolbar]"));
     }
 }

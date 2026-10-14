@@ -1,9 +1,7 @@
-/* Copy — desktop hover controls for plan, review, and heading ids.
-   Hidden unless the pointer can hover. Keyboard focus does not reveal them. */
+/* Copy controls use desktop hover. Lock controls also support keyboard focus and touch. */
 
 .copy-ids,
-.copy-anchor-wrap,
-.lock-anchor-wrap {
+.copy-anchor-wrap {
     display: none;
 }
 
@@ -11,7 +9,11 @@
     position: relative;
 }
 
-.lock-anchor-wrap.is-locked {
+.copy-heading:has(.lock-anchor-wrap) {
+    padding-right: calc(var(--space-5) + var(--space-2));
+}
+
+.lock-anchor-wrap {
     position: absolute;
     top: calc((1.25em - var(--space-5)) / 2);
     right: 0;
@@ -22,7 +24,7 @@
     height: var(--space-5);
 }
 
-.lock-anchor-wrap.is-locked .lock-anchor {
+.lock-anchor {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -35,12 +37,12 @@
     border-radius: 0;
     background: transparent;
     box-shadow: none;
-    color: var(--lock-ink);
+    color: var(--muted);
     line-height: 1;
     opacity: 1;
 }
 
-.lock-anchor-wrap.is-locked .lock-anchor svg {
+.lock-anchor svg {
     width: var(--space-5);
     height: var(--space-5);
     fill: none;
@@ -48,6 +50,10 @@
     stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+.lock-anchor-wrap.is-locked .lock-anchor {
+    color: var(--lock-ink);
 }
 
 .toast-host {
@@ -170,10 +176,6 @@
         opacity: 0.8;
     }
 
-    .copy-heading:has(.lock-anchor-wrap) {
-        padding-right: calc(var(--space-5) + var(--space-2));
-    }
-
     .lock-anchor-wrap {
         position: absolute;
         top: calc((1.25em - var(--space-5)) / 2);
@@ -213,12 +215,14 @@
         stroke-linejoin: round;
     }
 
-    .copy-heading:hover .lock-anchor {
+    .copy-heading:hover .lock-anchor,
+    .copy-heading:focus-within .lock-anchor {
         color: var(--nav-accent);
         opacity: 0.5;
     }
 
-    .copy-heading .lock-anchor:hover {
+    .copy-heading .lock-anchor:hover,
+    .copy-heading .lock-anchor:focus-visible {
         border: 0;
         background: transparent;
         color: var(--nav-accent);
@@ -226,7 +230,9 @@
     }
 
     .copy-heading:hover .lock-anchor-wrap.is-locked .lock-anchor,
-    .copy-heading .lock-anchor-wrap.is-locked .lock-anchor:hover {
+    .copy-heading:focus-within .lock-anchor-wrap.is-locked .lock-anchor,
+    .copy-heading .lock-anchor-wrap.is-locked .lock-anchor:hover,
+    .copy-heading .lock-anchor-wrap.is-locked .lock-anchor:focus-visible {
         border: 0;
         background: transparent;
         color: var(--lock-ink);

@@ -7,6 +7,7 @@ internal static class ReviewDiff
 {
     public static async Task<ReviewDiffAttempt> Open(
         IPlans plans,
+        IDocuments? documents,
         RevisionDetail revision,
         CancellationToken cancellationToken)
     {
@@ -15,17 +16,33 @@ internal static class ReviewDiff
             return ReviewDiffAttempt.Skip;
         }
 
-        RevisionDetail? parent;
+        RevisionId? parentId;
+        int parentNumber;
         try
         {
-            parent = await plans.RevisionAsync(new RevisionId(revision.ParentRevisionId), cancellationToken);
+            if (documents is null)
+            {
+                RevisionDetail? parent = await plans.RevisionAsync(
+                    new RevisionId(revision.ParentRevisionId),
+                    cancellationToken);
+                parentId = parent?.RevisionId;
+                parentNumber = parent?.Number ?? 0;
+            }
+            else
+            {
+                DocumentRevisionDetail? parent = await documents.RevisionAsync(
+                    new RevisionId(revision.ParentRevisionId),
+                    cancellationToken);
+                parentId = parent?.RevisionId;
+                parentNumber = parent?.Number ?? 0;
+            }
         }
         catch (Exception)
         {
             return ReviewDiffAttempt.Fail("Could not load this review");
         }
 
-        if (parent is null)
+        if (parentId is null)
         {
             return ReviewDiffAttempt.Fail("Revision was not found.");
         }
@@ -33,7 +50,7 @@ internal static class ReviewDiff
         DiffOutcome outcome;
         try
         {
-            outcome = await plans.DiffAsync(parent.RevisionId, revision.RevisionId, cancellationToken);
+            outcome = await plans.DiffAsync(parentId.Value, revision.RevisionId, cancellationToken);
         }
         catch (Exception)
         {
@@ -48,7 +65,7 @@ internal static class ReviewDiff
         DiffOutcome.Lines lines = (DiffOutcome.Lines)outcome;
         return ReviewDiffAttempt.Show(
             new DiffPanel(
-                $"Changes from v{parent.Number} to v{revision.Number}",
+                $"Changes from v{parentNumber} to v{revision.Number}",
                 lines.Rows.Select(ToRow).ToArray()));
     }
 

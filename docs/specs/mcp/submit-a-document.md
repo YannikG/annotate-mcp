@@ -14,6 +14,8 @@ sources:
 - Return `changes_requested` with the feedback from `await_document_review` after the person requests changes.
 - Return `read_only` from `await_document_review` when the document is read-only, and refuse a further submit.
 - Refuse a submit that changes or removes a locked heading, or the text under it until the next heading, and insert nothing.
+- Scope a heading lock by block order, not heading text. A later heading with the same text starts a separate section.
+- Ignore document locks that are absent from the revision named by `previousReviewId`.
 - Show `locked: true` or `locked: false` from `list_revision_blocks` for a document revision. Text under a locked heading is `locked: true`.
 - Refuse `annotate_block` on a locked heading, on the text under it, or on a read-only document.
 - Selecting a locked heading, or the text under it, shows a toast and does not open the annotation popup.
@@ -21,6 +23,9 @@ sources:
 - Show the revision dropdown on the document page, in the editor toolbar, and open an older revision at `/documents/{id}/revisions/{revisionId}`.
 - Show Exit review mode in the document review heading, beside the status. It opens the document.
 - Download the selected document revision from the document page toolbar as standalone HTML. A download failure shows an alert.
+- Confirm archive, restore, and permanent delete before changing the document.
+- Recheck read-only before saving a draft or requesting changes from an already open review.
+- Show the parent diff for a document revision when the reviewer uses the diff shortcut.
 
 ## Must not
 
