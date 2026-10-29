@@ -11,7 +11,7 @@ sources:
 - Show Enlarge on a rendered mermaid fence on the plan, document, revision, and review pages.
 - Keep Enlarge outside the annotatable source, and hide it until the diagram has rendered.
 - Open that diagram in one viewer that nearly fills the viewport, using the SVG already on the page.
-- Scale that diagram to fit the viewer, the way an image fits object-fit: contain, with no zoom or pan control.
+- Open fitted and centered. Zoom in and zoom out, from the buttons, from `+` and `−`, and from the wheel. Drag to pan. Recenter, and `0`, fit and center it again.
 - Close with Close, Escape, or the backdrop, and put the diagram back in its column.
 - Follow the light and dark theme, including a change while the viewer is open.
 
@@ -24,8 +24,8 @@ sources:
 
 ## Flow
 
-Rendered diagram → Enlarge → close → diagram is inline again.
+Rendered diagram → Enlarge → zoom or pan → Recenter or close → diagram is inline again.
 
 ## Verification
 
-Open a plan whose mermaid fence is wider than the column. Enlarge it, confirm it fills the viewer, switch theme, close with Escape, and confirm the diagram is back in the column. Confirm a decision dialog stays the narrow form dialog, and a downloaded report still shows the fence as source.
+Open a plan whose mermaid fence is wider than the column. Enlarge it, zoom in, drag sideways, Recenter, switch theme, close with Escape, and confirm the diagram is back in the column. Confirm a decision dialog stays the narrow form dialog, and a downloaded report still shows the fence as source.
