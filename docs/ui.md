@@ -76,7 +76,7 @@ All live in `src/Annotate.Web/Components/Ui/` and are in scope via `_Imports.raz
 
 **`<Select>`** — the only dropdown. A labelled trigger button shows the current value and a chevron; the custom listbox (`role="listbox"`, options as `role="option"`) drops below it, so the open state follows the design system too. Arrows move the selection while open, Enter/Space toggles, Escape or the backdrop closes. Never use a native `<select>` — its option popup cannot be styled. Extra attributes (including `data-*`) splat onto the wrapper.
 
-**`<Dialog>`** — the only modal shell for Blazor views. Renders the overlay, backdrop button, and `role="dialog"` panel with `aria-modal` and `aria-labelledby`. Escape and backdrop click raise `Close`. `LabelledBy` must point at the id of the dialog's heading. Form dialogs stay `min(32rem, …)` wide. The Mermaid viewer is built in `diagram-viewer.js` from these same classes, because the rendered SVG is inserted by script and a Blazor re-render would drop it. That panel is nearly the viewport. Zoom in, zoom out, and Fit live only there.
+**`<Dialog>`** — the only modal shell for Blazor views. Renders the overlay, backdrop button, and `role="dialog"` panel with `aria-modal` and `aria-labelledby`. Escape and backdrop click raise `Close`. `LabelledBy` must point at the id of the dialog's heading. Form dialogs stay `min(32rem, …)` wide. The Mermaid viewer is built in `diagram-viewer.js` from these same classes, because the rendered SVG is inserted by script and a Blazor re-render would drop it. That panel is nearly the viewport and scales the diagram to fit it; there is no zoom or pan control.
 
 **`<ConfirmDialog>`** — a `Dialog` with title, body, optional `Error` alert, and Cancel/Confirm actions. `ConfirmVariant` defaults to `Primary`; use `Destructive` for irreversible actions. Confirm and Cancel carry `data-confirm` and `data-cancel`.
 
@@ -112,7 +112,7 @@ Reports are standalone HTML and cannot link `tokens.css`, so `PlanReportStyles` 
 | Annotate (delete, replace, insert, comment) | The selection popup beside the quote. A locked block shows a toast instead of the popup |
 | Submit review (approve, request changes) | Review actions: right panel on desktop, Actions flyout below 1100px |
 | Answer a decision | The decision dialog, opened from the card's Answer button |
-| Enlarge a Mermaid diagram | Enlarge on that diagram. Zoom in, zoom out, and Fit are in the viewer |
+| Enlarge a Mermaid diagram | Enlarge on that diagram. It fills the viewer, scaled to fit like an image |
 | Project edit, archive, delete | The project header, on both Plans and Documents. Archive, restore, and delete ask for confirmation |
 | Theme switch | The shared navigation |
 | Copy a plan or review id | The editor toolbar copy menu |
