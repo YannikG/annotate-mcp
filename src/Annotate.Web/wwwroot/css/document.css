@@ -219,6 +219,19 @@
 
 /* Mermaid diagrams */
 
+.mermaid-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.mermaid-actions:has([hidden]) {
+    display: none;
+}
+
+.mermaid-actions .btn {
+    margin-bottom: var(--space-2);
+}
+
 .mermaid-canvas {
     overflow-x: auto;
 }

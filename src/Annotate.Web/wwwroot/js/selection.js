@@ -146,6 +146,26 @@
     error.textContent = message;
   }
 
+  // The viewer moves the canvas out of the block. data-mermaid-home is the block index.
+  function diagramCanvas(block) {
+    const id = block.querySelector("[data-block-index]")?.getAttribute("data-block-index") ?? "";
+    if (/^\d+$/.test(id)) {
+      const moved = document.querySelector(`[data-mermaid-canvas][data-mermaid-home="${id}"]`);
+      if (moved) return moved;
+    }
+    return block.querySelector("[data-mermaid-canvas]");
+  }
+
+  function syncEnlarge(block, canvas) {
+    const enlarge = block.querySelector("[data-mermaid-enlarge]");
+    if (enlarge) enlarge.hidden = !canvas.querySelector("svg");
+  }
+
+  function settle(block, canvas) {
+    syncEnlarge(block, canvas);
+    canvas.dispatchEvent(new CustomEvent("annotate-diagram-rendered", { bubbles: true }));
+  }
+
   async function renderDiagrams() {
     const blocks = [...document.querySelectorAll("[data-mermaid]")];
     if (blocks.length === 0) return;
@@ -154,7 +174,11 @@
     try {
       mermaid = await loadMermaid();
     } catch (reason) {
-      for (const block of blocks) showDiagramError(block, reason instanceof Error ? reason.message : "Could not render this Mermaid diagram.");
+      for (const block of blocks) {
+        showDiagramError(block, reason instanceof Error ? reason.message : "Could not render this Mermaid diagram.");
+        const canvas = diagramCanvas(block);
+        if (canvas) syncEnlarge(block, canvas);
+      }
       return;
     }
 
@@ -168,12 +192,15 @@
     });
 
     for (const block of blocks) {
-      const canvas = block.querySelector("[data-mermaid-canvas]");
+      const canvas = diagramCanvas(block);
       const body = block.querySelector("[data-mermaid-body]");
       if (!canvas || !body) continue;
       const source = body.textContent ?? "";
       const key = diagramTheme() + "\n" + source;
-      if (canvas.getAttribute("data-rendered") === key) continue;
+      if (canvas.getAttribute("data-rendered") === key) {
+        syncEnlarge(block, canvas);
+        continue;
+      }
       canvas.setAttribute("data-rendered", key);
       const error = block.querySelector("[data-mermaid-error]");
       if (error) {
@@ -185,6 +212,7 @@
         canvas.replaceChildren();
         applyDiagramStyle(canvas, "");
         showDiagramError(block, `Diagram source exceeds ${maxDiagramLength} characters.`);
+        settle(block, canvas);
         continue;
       }
 
@@ -211,10 +239,12 @@
         }
         canvas.replaceChildren(document.importNode(parsed.documentElement, true));
         applyDiagramStyle(canvas, css);
+        settle(block, canvas);
       } catch (reason) {
         canvas.replaceChildren();
         applyDiagramStyle(canvas, "");
         showDiagramError(block, reason instanceof Error ? reason.message : "Could not render this Mermaid diagram.");
+        settle(block, canvas);
       }
     }
   }

@@ -50,6 +50,64 @@
     font-weight: var(--weight-semibold);
 }
 
+/* Diagram viewer — same shell as .dialog, nearly the viewport. Built in
+   diagram-viewer.js because the SVG is inserted by script. The stage clips
+   the diagram; script translates and scales the canvas to zoom and pan. */
+
+[data-diagram-viewer] {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: grid;
+}
+
+[data-diagram-viewer][hidden] {
+    display: none;
+}
+
+.dialog-diagram {
+    width: calc(100% - 1.5rem);
+    height: calc(100dvh - 1.5rem);
+    max-height: calc(100dvh - 1.5rem);
+    overflow: hidden;
+}
+
+.diagram-viewer-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+.diagram-stage {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    touch-action: none;
+    cursor: grab;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface-sunken);
+}
+
+.diagram-stage.is-panning {
+    cursor: grabbing;
+}
+
+[data-diagram-viewer] .mermaid-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: visible;
+    transform-origin: 0 0;
+}
+
+[data-diagram-viewer] .mermaid-canvas svg {
+    display: block;
+    max-width: none;
+}
+
 .dialog form {
     display: flex;
     flex-direction: column;

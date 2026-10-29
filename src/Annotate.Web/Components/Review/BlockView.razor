@@ -22,6 +22,9 @@ else if (Block is ListBlock list)
 else if (Block is CodeBlock mermaid && mermaid.Language.Equals("mermaid", StringComparison.OrdinalIgnoreCase))
 {
     <div class="mermaid-block" data-mermaid>
+        <div class="mermaid-actions">
+            <Button Variant="ButtonVariant.Quiet" class="btn-sm" data-mermaid-enlarge hidden="hidden">Enlarge</Button>
+        </div>
         <div class="mermaid-canvas" data-mermaid-canvas aria-label="Mermaid diagram"></div>
         <p class="mermaid-error" data-mermaid-error hidden></p>
         <details class="mermaid-source">
