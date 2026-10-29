@@ -91,6 +91,11 @@ public sealed class FenceRenderingTests
             Assert.Contains("A-->B", diagram.QuerySelector("[data-mermaid-body]")!.TextContent, StringComparison.Ordinal);
             Assert.Contains("```mermaid", diagram.QuerySelector("code[data-block-index]")!.TextContent, StringComparison.Ordinal);
             Assert.Empty(page.Find("[data-plan]").QuerySelectorAll("script, svg"));
+            IElement enlarge = diagram.QuerySelector("[data-mermaid-enlarge]")!;
+            Assert.Equal("Enlarge", enlarge.TextContent.Trim());
+            Assert.True(enlarge.HasAttribute("hidden"));
+            Assert.Null(enlarge.Closest("[data-block-index]"));
+            Assert.Single(page.FindAll("[data-mermaid-enlarge]"));
         });
     }
 
