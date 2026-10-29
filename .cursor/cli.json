@@ -1,5 +1,4 @@
 {
-  "approvalMode": "allowlist",
   "permissions": {
     "allow": [
       "Shell(docker:compose up*)",
