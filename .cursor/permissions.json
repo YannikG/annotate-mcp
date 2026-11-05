@@ -1,0 +1,10 @@
+{
+  "autoRun": {
+    "allow_instructions": [],
+    "block_instructions": [
+      "Never merge a pull request. Block gh pr merge, including --squash and --admin, gh api and curl calls that merge a pull request, and the mergePullRequest GraphQL mutation. A person squash-merges.",
+      "Never approve a pull request. Block gh pr review --approve and -a, and a reviews API call whose event is APPROVE.",
+      "Never push to main or master, including a refspec such as HEAD:main and a force push aimed at those branches."
+    ]
+  }
+}
