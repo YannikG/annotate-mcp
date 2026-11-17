@@ -11,7 +11,7 @@ internal static class ReviewsSchema
         ReviewsDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
         try
         {
-            await db.Database.MigrateAsync(cancellationToken);
+            await ReviewsDatabase.EnsureMigratedAsync(db, cancellationToken);
             return db;
         }
         catch

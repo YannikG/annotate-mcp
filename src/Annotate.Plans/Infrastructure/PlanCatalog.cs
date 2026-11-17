@@ -16,7 +16,7 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
     public async Task<ProjectSummary?> ProjectAsync(ProjectId id, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Project? project = await db.Projects.SingleOrDefaultAsync(item => item.Id == id.Value, cancellationToken);
         if (project is null)
         {
@@ -39,7 +39,7 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
         }
 
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Project? project = await db.Projects.SingleOrDefaultAsync(
             item => item.Id == id.Value,
             cancellationToken);
@@ -56,7 +56,7 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
     public async Task<ProjectChange> ArchiveProjectAsync(ProjectId id, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Project? project = await db.Projects.SingleOrDefaultAsync(item => item.Id == id.Value, cancellationToken);
         if (project is null)
         {
@@ -71,7 +71,7 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
     public async Task<ProjectChange> RestoreProjectAsync(ProjectId id, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Project? project = await db.Projects.SingleOrDefaultAsync(item => item.Id == id.Value, cancellationToken);
         if (project is null)
         {
@@ -104,7 +104,7 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
     public async Task<ProjectChange> DeleteProjectAsync(ProjectId id, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Project? project = await db.Projects.SingleOrDefaultAsync(item => item.Id == id.Value, cancellationToken);
         if (project is null)
         {
@@ -145,7 +145,7 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
     public async Task<PlanChange> ArchivePlanAsync(PlanId id, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Plan? plan = await db.Plans.SingleOrDefaultAsync(item => item.Id == id.Value, cancellationToken);
         if (plan is null)
         {
@@ -165,7 +165,7 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
     public async Task<PlanChange> RestorePlanAsync(PlanId id, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Plan? plan = await db.Plans.SingleOrDefaultAsync(item => item.Id == id.Value, cancellationToken);
         if (plan is null)
         {
@@ -180,7 +180,7 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
     public async Task<PlanChange> DeletePlanAsync(PlanId id, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Plan? plan = await db.Plans.SingleOrDefaultAsync(item => item.Id == id.Value, cancellationToken);
         if (plan is null)
         {
@@ -208,7 +208,7 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
         CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         List<Plan> plans = await db.Plans
             .Where(plan => plan.ProjectId == id.Value && (archived ? plan.ArchivedAt != null : plan.ArchivedAt == null))
             .ToListAsync(cancellationToken);
@@ -227,7 +227,7 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
     public async Task<DiffOutcome> DiffAsync(RevisionId older, RevisionId newer, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Revision? left = await db.Revisions.SingleOrDefaultAsync(
             item => item.Id == older.Value,
             cancellationToken);
@@ -261,7 +261,7 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
     public async Task<PlanDetail?> PlanAsync(PlanId id, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Plan? plan = await db.Plans.SingleOrDefaultAsync(item => item.Id == id.Value, cancellationToken);
         if (plan is null)
         {
@@ -301,7 +301,7 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
     public async Task<IReadOnlyList<RevisionActivity>> RevisionActivityAsync(CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         var rows = await (
             from revision in db.Revisions
             join plan in db.Plans on revision.PlanId equals plan.Id
@@ -371,7 +371,7 @@ internal sealed class PlanCatalog(IDbContextFactory<PlansDbContext> contexts)
         CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         List<Project> projects = await db.Projects
             .Where(project => archived ? project.ArchivedAt != null : project.ArchivedAt == null)
             .ToListAsync(cancellationToken);
