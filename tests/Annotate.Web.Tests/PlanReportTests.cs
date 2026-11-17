@@ -74,32 +74,39 @@ public sealed class PlanReportTests
         Assert.Equal("Keep one file", document.QuerySelector("h1")!.TextContent);
         IElement story = document.QuerySelector("a[href='https://example.com/story']")!;
         Assert.Equal("https://example.com/story", story.TextContent);
-        Assert.Contains("<script>alert(2)</script>", document.Body!.TextContent, StringComparison.Ordinal);
-        Assert.DoesNotContain("<script", html, StringComparison.OrdinalIgnoreCase);
-        Assert.Empty(document.QuerySelectorAll("script"));
+        IElement main = document.QuerySelector("main")!;
+        Assert.Contains("<script>alert(2)</script>", main.TextContent, StringComparison.Ordinal);
+        Assert.Contains("&lt;script&gt;alert(1)&lt;/script&gt;", html, StringComparison.Ordinal);
+        Assert.Contains("&lt;script&gt;alert(2)&lt;/script&gt;", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("<script", document.QuerySelector("article")!.InnerHtml, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("data-diagram-viewer", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("annotateDiagrams", html, StringComparison.Ordinal);
+        Assert.Single(document.QuerySelectorAll("script"));
 
         Assert.Equal("docs", document.QuerySelector($"a[href='{docs.Destination}']")!.TextContent);
         Assert.Null(pending.Destination);
         Assert.All(
             document.QuerySelectorAll("a"),
             anchor => Assert.DoesNotContain("pending", anchor.TextContent, StringComparison.Ordinal));
-        Assert.Contains("pending", document.Body.TextContent, StringComparison.Ordinal);
+        Assert.Contains("pending", main.TextContent, StringComparison.Ordinal);
 
         IElement image = Assert.Single(document.QuerySelectorAll("img"));
         Assert.Equal(mark.Destination, image.GetAttribute("src"));
         Assert.Null(plain.Destination);
-        Assert.Contains("plain", document.Body.TextContent, StringComparison.Ordinal);
+        Assert.Contains("plain", main.TextContent, StringComparison.Ordinal);
         Assert.DoesNotContain("plain", image.GetAttribute("alt") ?? "", StringComparison.Ordinal);
-        Assert.Contains("alert(1)", document.Body.TextContent, StringComparison.Ordinal);
+        Assert.Contains("alert(1)", main.TextContent, StringComparison.Ordinal);
 
-        IHtmlCollection<IElement> fences = document.QuerySelectorAll("pre code");
-        Assert.Contains(fences, node => node.TextContent == mermaid.Body && node.ClassList.Contains("language-mermaid"));
+        IElement diagram = document.QuerySelector("[data-mermaid]")!;
+        Assert.Equal(mermaid.Body, diagram.QuerySelector("[data-mermaid-body]")!.TextContent);
+        Assert.Empty(diagram.QuerySelectorAll("[data-code-fence]"));
+        IHtmlCollection<IElement> fences = document.QuerySelectorAll("[data-code-fence] pre code");
         Assert.Contains(fences, node => node.TextContent == diff.Body && node.ClassList.Contains("language-diff"));
-        Assert.Contains("graph TD", document.Body.TextContent, StringComparison.Ordinal);
-        Assert.Contains("+ new", document.Body.TextContent, StringComparison.Ordinal);
+        Assert.Contains("graph TD", main.TextContent, StringComparison.Ordinal);
+        Assert.Contains("+ new", main.TextContent, StringComparison.Ordinal);
         Assert.Empty(document.QuerySelectorAll("svg"));
 
-        string text = document.Body.TextContent;
+        string text = main.TextContent;
         int storage = text.IndexOf("Storage", StringComparison.Ordinal);
         int keep = text.IndexOf("Keep the file local.", StringComparison.Ordinal);
         int graph = text.IndexOf("graph TD", StringComparison.Ordinal);
@@ -137,5 +144,55 @@ public sealed class PlanReportTests
         Assert.Equal("Plan", blankDocument.Title);
         Assert.Equal("Plan", blankDocument.QuerySelector("h1")!.TextContent);
         Assert.Contains("Hello", blankDocument.Body!.TextContent, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ReportDrawsMermaidAndLeavesOtherFencesAsSource()
+    {
+        string diagram = PlanReport.Html(
+            "Flow",
+            null,
+            null,
+            """
+            ```mermaid
+            flowchart LR
+              A-->B
+            ```
+            """);
+        IDocument document = new HtmlParser().ParseDocument(diagram);
+        IElement block = Assert.Single(document.QuerySelectorAll("[data-mermaid]"));
+        Assert.Empty(block.QuerySelectorAll("[data-code-fence]"));
+        IElement enlarge = block.QuerySelector("[data-mermaid-enlarge]")!;
+        Assert.Equal("Enlarge", enlarge.TextContent.Trim());
+        Assert.Equal("button", enlarge.TagName, ignoreCase: true);
+        Assert.Contains("btn-quiet", enlarge.ClassName, StringComparison.Ordinal);
+        Assert.True(enlarge.HasAttribute("hidden"));
+        Assert.Null(enlarge.Closest("[data-block-index]"));
+        Assert.NotNull(block.QuerySelector("[data-mermaid-canvas]"));
+        Assert.NotNull(block.QuerySelector("[data-mermaid-error][hidden]"));
+        Assert.Contains("A-->B", block.QuerySelector("[data-mermaid-body]")!.TextContent, StringComparison.Ordinal);
+        Assert.DoesNotContain("```", block.QuerySelector("[data-mermaid-body]")!.TextContent, StringComparison.Ordinal);
+        Assert.Equal("0", block.QuerySelector("[data-block-index]")!.GetAttribute("data-block-index"));
+        Assert.Equal("Mermaid source", block.QuerySelector("summary")!.TextContent);
+        Assert.Contains("data-diagram-viewer", diagram, StringComparison.Ordinal);
+        Assert.DoesNotContain("annotateDiagrams", diagram, StringComparison.Ordinal);
+        Assert.Single(document.QuerySelectorAll("script"));
+        Assert.True(diagram.Length < 150_000, "The report must store a diagram slot, not the Mermaid bundle.");
+        Assert.Empty(document.QuerySelectorAll("svg"));
+        Assert.Contains(".dialog-diagram", document.QuerySelector("style")!.TextContent, StringComparison.Ordinal);
+
+        string plain = PlanReport.Html(
+            "Note",
+            null,
+            null,
+            """
+            ```text
+            hello
+            ```
+            """);
+        IDocument plainDocument = new HtmlParser().ParseDocument(plain);
+        Assert.Contains("hello", plainDocument.QuerySelector("[data-code-fence] code")!.TextContent, StringComparison.Ordinal);
+        Assert.Empty(plainDocument.QuerySelectorAll("[data-mermaid], script"));
+        Assert.DoesNotContain("annotateDiagrams", plain, StringComparison.Ordinal);
     }
 }
