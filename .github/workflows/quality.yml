@@ -18,19 +18,9 @@ jobs:
         with:
           dotnet-version: "10.0.x"
       - name: Install ast-grep 0.45.3
-        run: |
-          set -euo pipefail
-          case "$(uname -m)" in
-            x86_64) asset=app-x86_64-unknown-linux-gnu.zip ;;
-            aarch64|arm64) asset=app-aarch64-unknown-linux-gnu.zip ;;
-            *) echo "unsupported arch $(uname -m)" >&2; exit 1 ;;
-          esac
-          curl -sSLf -o "$RUNNER_TEMP/sg.zip" "https://github.com/ast-grep/ast-grep/releases/download/0.45.3/${asset}"
-          mkdir -p "$RUNNER_TEMP/sg-bin"
-          unzip -q -j "$RUNNER_TEMP/sg.zip" -d "$RUNNER_TEMP/sg-bin"
-          chmod +x "$RUNNER_TEMP/sg-bin/sg" "$RUNNER_TEMP/sg-bin/ast-grep"
+        run: npm install --prefix "$RUNNER_TEMP/sg" --allow-scripts=@ast-grep/cli @ast-grep/cli@0.45.3
       - name: Put ast-grep on PATH
-        run: echo "$RUNNER_TEMP/sg-bin" >> "$GITHUB_PATH"
+        run: echo "$RUNNER_TEMP/sg/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Check
         run: ./build/check.sh
 
