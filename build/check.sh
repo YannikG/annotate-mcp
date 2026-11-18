@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+export PATH="$PWD/node_modules/.bin:$PATH"
 
 if ! command -v ast-grep >/dev/null 2>&1; then
-  echo "ast-grep 0.45.3 is required: npm install -g @ast-grep/cli@0.45.3" >&2
+  echo "ast-grep 0.45.3 is required. From the repository root: npm ci" >&2
   exit 1
 fi
 
