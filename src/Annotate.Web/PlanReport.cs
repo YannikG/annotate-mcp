@@ -53,12 +53,19 @@ public static class PlanReport
             AppendText(html, invalid.Error);
             html.Append("</pre>");
         }
-        else if (parsed is ParseOutcome.Ok ok)
+        bool diagrams = false;
+        if (parsed is ParseOutcome.Ok ok)
         {
-            PlanReportBlocks.Append(html, markdown, ok.Document.Blocks);
+            diagrams = PlanReportBlocks.Append(html, markdown, ok.Document.Blocks);
         }
 
-        html.Append("</article></main></body></html>");
+        html.Append("</article></main>");
+        if (diagrams)
+        {
+            PlanReportScripts.Append(html);
+        }
+
+        html.Append("</body></html>");
         return html.ToString();
     }
 

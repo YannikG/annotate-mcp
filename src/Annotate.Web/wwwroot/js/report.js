@@ -1,6 +1,7 @@
 (function () {
-  function download(html, fileName) {
+  async function download(html, fileName) {
     try {
+      if (window.annotateDiagrams?.embed) html = await window.annotateDiagrams.embed(html);
       const blob = new Blob([html], { type: "text/html;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");

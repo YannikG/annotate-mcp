@@ -9,8 +9,10 @@ public sealed class ReportStyleTests
     private static readonly string[] SharedTokens =
     [
         "--paper", "--ink", "--line", "--muted", "--surface", "--surface-sunken",
-        "--panel-inset", "--accent", "--font-sans", "--font-mono",
-        "--radius-xs", "--radius-sm", "--radius-md", "--radius-lg",
+        "--panel-inset", "--accent", "--accent-ink", "--danger-ink", "--backdrop", "--shadow-lg",
+        "--font-sans", "--font-mono", "--text-xs", "--text-sm", "--text-lg",
+        "--weight-medium", "--weight-semibold", "--space-1", "--space-2", "--space-3",
+        "--radius-xs", "--radius-sm", "--radius-md", "--radius-lg", "--z-modal",
     ];
 
     [Fact]

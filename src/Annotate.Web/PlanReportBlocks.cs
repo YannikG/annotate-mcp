@@ -7,15 +7,27 @@ namespace Annotate.Web;
 
 internal static class PlanReportBlocks
 {
-    public static void Append(StringBuilder html, string source, IReadOnlyList<Block> blocks)
+    public static bool Append(StringBuilder html, string source, IReadOnlyList<Block> blocks)
     {
-        foreach (Block block in blocks)
-        {
-            Append(html, source, block);
-        }
+        int diagram = 0;
+        return Append(html, source, blocks, ref diagram);
     }
 
-    private static void Append(StringBuilder html, string source, Block block)
+    private static bool Append(StringBuilder html, string source, IReadOnlyList<Block> blocks, ref int diagram)
+    {
+        bool any = false;
+        foreach (Block block in blocks)
+        {
+            if (Append(html, source, block, ref diagram))
+            {
+                any = true;
+            }
+        }
+
+        return any;
+    }
+
+    private static bool Append(StringBuilder html, string source, Block block, ref int diagram)
     {
         switch (block)
         {
@@ -24,15 +36,19 @@ internal static class PlanReportBlocks
                 html.Append("<h").Append(level).Append('>');
                 AppendInlines(html, source, heading.Inlines);
                 html.Append("</h").Append(level).Append('>');
-                break;
+                return false;
             case ParagraphBlock paragraph:
                 html.Append("<p>");
                 AppendInlines(html, source, paragraph.Inlines);
                 html.Append("</p>");
-                break;
+                return false;
             case ListBlock list:
                 AppendList(html, source, list.Items);
-                break;
+                return false;
+            case CodeBlock code when code.Language.Equals("mermaid", StringComparison.OrdinalIgnoreCase):
+                AppendMermaid(html, code, diagram);
+                diagram++;
+                return true;
             case CodeBlock code:
                 string language = CodeFenceContent.Language(code);
                 html.Append("<div class=\"code-block\" data-code-fence>");
@@ -51,28 +67,42 @@ internal static class PlanReportBlocks
                     if (line.HasNewline) html.Append('\n');
                 }
                 html.Append("</code></pre></div>");
-                break;
+                return false;
             case QuoteBlock quote:
                 html.Append("<blockquote>");
-                Append(html, source, quote.Children);
+                bool quoteDiagram = Append(html, source, quote.Children, ref diagram);
                 html.Append("</blockquote>");
-                break;
+                return quoteDiagram;
             case TableBlock table:
                 AppendTable(html, source, table);
-                break;
+                return false;
             case RuleBlock:
                 html.Append("<hr>");
-                break;
+                return false;
             case DetailsBlock details:
                 html.Append("<details><summary>");
                 AppendInlines(html, source, details.Summary);
                 html.Append("</summary>");
-                Append(html, source, details.Children);
+                bool detailsDiagram = Append(html, source, details.Children, ref diagram);
                 html.Append("</details>");
-                break;
+                return detailsDiagram;
             default:
                 throw new InvalidOperationException($"Block {block.GetType().Name} was not recognised.");
         }
+    }
+
+    private static void AppendMermaid(StringBuilder html, CodeBlock code, int index)
+    {
+        html.Append("<div class=\"mermaid-block\" data-mermaid><div class=\"mermaid-actions\">");
+        html.Append("<button type=\"button\" class=\"btn btn-quiet btn-sm\" data-mermaid-enlarge hidden>Enlarge</button>");
+        html.Append("</div><div class=\"mermaid-canvas\" data-mermaid-canvas aria-label=\"Mermaid diagram\"></div>");
+        html.Append("<p class=\"mermaid-error\" data-mermaid-error hidden></p><details class=\"mermaid-source\"><summary>Mermaid source</summary><pre><code data-block-index=\"");
+        html.Append(index);
+        html.Append("\">");
+        PlanReport.AppendText(html, code.Body);
+        html.Append("</code></pre></details><pre class=\"visually-hidden\" data-mermaid-body>");
+        PlanReport.AppendText(html, code.Body);
+        html.Append("</pre></div>");
     }
 
     private static void AppendList(StringBuilder html, string source, IReadOnlyList<ListItem> items)
