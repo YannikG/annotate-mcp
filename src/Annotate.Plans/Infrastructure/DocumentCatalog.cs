@@ -13,7 +13,7 @@ internal sealed class DocumentCatalog(IDbContextFactory<PlansDbContext> contexts
         CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         List<Document> documents = await db.Documents
             .Where(document => document.ProjectId == id.Value && (archived ? document.ArchivedAt != null : document.ArchivedAt == null))
             .ToListAsync(cancellationToken);
@@ -34,7 +34,7 @@ internal sealed class DocumentCatalog(IDbContextFactory<PlansDbContext> contexts
     public async Task<DocumentChange> ArchiveAsync(DocumentId id, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Document? document = await db.Documents.SingleOrDefaultAsync(item => item.Id == id.Value, cancellationToken);
         if (document is null)
         {
@@ -54,7 +54,7 @@ internal sealed class DocumentCatalog(IDbContextFactory<PlansDbContext> contexts
     public async Task<DocumentChange> RestoreAsync(DocumentId id, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Document? document = await db.Documents.SingleOrDefaultAsync(item => item.Id == id.Value, cancellationToken);
         if (document is null)
         {
@@ -69,7 +69,7 @@ internal sealed class DocumentCatalog(IDbContextFactory<PlansDbContext> contexts
     public async Task<DocumentChange> DeleteAsync(DocumentId id, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Document? document = await db.Documents.SingleOrDefaultAsync(item => item.Id == id.Value, cancellationToken);
         if (document is null)
         {
@@ -94,7 +94,7 @@ internal sealed class DocumentCatalog(IDbContextFactory<PlansDbContext> contexts
     public async Task<DocumentChange> SetReadOnlyAsync(DocumentId id, bool makeReadOnly, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Document? document = await db.Documents.SingleOrDefaultAsync(item => item.Id == id.Value, cancellationToken);
         if (document is null)
         {
@@ -113,7 +113,7 @@ internal sealed class DocumentCatalog(IDbContextFactory<PlansDbContext> contexts
         CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Document? document = await db.Documents.SingleOrDefaultAsync(item => item.Id == id.Value, cancellationToken);
         if (document is null)
         {
@@ -157,7 +157,7 @@ internal sealed class DocumentCatalog(IDbContextFactory<PlansDbContext> contexts
     public async Task<DocumentDetail?> DocumentAsync(DocumentId id, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Document? document = await db.Documents.SingleOrDefaultAsync(item => item.Id == id.Value, cancellationToken);
         if (document is null)
         {
@@ -200,7 +200,7 @@ internal sealed class DocumentCatalog(IDbContextFactory<PlansDbContext> contexts
     public async Task<DocumentRevisionDetail?> RevisionAsync(RevisionId id, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Revision? revision = await db.Revisions.SingleOrDefaultAsync(item => item.Id == id.Value, cancellationToken);
         if (revision?.DocumentId is null)
         {

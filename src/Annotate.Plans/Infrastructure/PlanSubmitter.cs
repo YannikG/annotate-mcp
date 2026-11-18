@@ -12,7 +12,7 @@ internal sealed class PlanSubmitter(IDbContextFactory<PlansDbContext> contexts, 
     public async Task<SubmitOutcome> SubmitAsync(SubmitRevision request, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
 
         string? error = RevisionLimits.Reject(
                 request.Markdown,
@@ -92,7 +92,7 @@ internal sealed class PlanSubmitter(IDbContextFactory<PlansDbContext> contexts, 
     public async Task<RevisionDetail?> RevisionAsync(RevisionId id, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         Revision? revision = await db.Revisions.SingleOrDefaultAsync(
             item => item.Id == id.Value,
             cancellationToken);
