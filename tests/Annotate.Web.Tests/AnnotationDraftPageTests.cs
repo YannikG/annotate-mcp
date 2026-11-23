@@ -39,13 +39,18 @@ public sealed class AnnotationDraftPageTests
         if (key != "d")
         {
             await page.Find("[data-note]").InputAsync("first draft");
-            string firstId = Assert.Single((await reviews.FindAsync(id, CancellationToken.None))!.Annotations).Id;
+            ReviewDetail first = await WaitForDraft(reviews, id, detail => detail.Annotations.Count == 1);
+            string firstId = Assert.Single(first.Annotations).Id;
             await page.Find("[data-note]").InputAsync("");
-            Assert.Empty((await reviews.FindAsync(id, CancellationToken.None))!.Annotations);
+            await WaitForDraft(reviews, id, detail => detail.Annotations.Count == 0);
             await page.Find("[data-note]").InputAsync("edited draft");
-            Assert.Equal(firstId, Assert.Single((await reviews.FindAsync(id, CancellationToken.None))!.Annotations).Id);
+            ReviewDetail edited = await WaitForDraft(reviews, id, detail =>
+                detail.Annotations.Count == 1
+                && detail.Annotations[0].Id == firstId
+                && (key == "c" ? detail.Annotations[0].Comment : detail.Annotations[0].Replacement) == "edited draft");
+            Assert.Equal(firstId, Assert.Single(edited.Annotations).Id);
         }
-        ReviewDetail saved = (await reviews.FindAsync(id, CancellationToken.None))!;
+        ReviewDetail saved = await WaitForDraft(reviews, id, detail => detail.Annotations.Count == 1);
         Annotation annotation = Assert.Single(saved.Annotations);
         Assert.Equal(ReviewStatus.Pending, saved.Status);
         Assert.Null(saved.Feedback);
@@ -60,6 +65,23 @@ public sealed class AnnotationDraftPageTests
         returned.Dispose();
         var afterUndo = context.Render<ReviewPage>(p => p.Add(c => c.Id, id.Value));
         afterUndo.WaitForAssertion(() => Assert.Empty(afterUndo.FindAll("[data-plan] [data-annotation-kinds]")));
+    }
+
+    private static async Task<ReviewDetail> WaitForDraft(IReviews reviews, ReviewId id, Func<ReviewDetail, bool> match)
+    {
+        var started = System.Diagnostics.Stopwatch.StartNew();
+        while (started.Elapsed < TimeSpan.FromSeconds(2))
+        {
+            ReviewDetail? detail = await reviews.FindAsync(id, CancellationToken.None);
+            if (detail is not null && match(detail))
+            {
+                return detail;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(20));
+        }
+
+        throw new Xunit.Sdk.XunitException("Draft was not saved.");
     }
 
     [Fact]

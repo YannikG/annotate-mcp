@@ -13,7 +13,7 @@ internal sealed class DocumentSubmitter(IDbContextFactory<PlansDbContext> contex
     public async Task<DocumentSubmitOutcome> SubmitAsync(SubmitDocument request, CancellationToken cancellationToken)
     {
         await using PlansDbContext db = await contexts.CreateDbContextAsync(cancellationToken);
-        await db.Database.MigrateAsync(cancellationToken);
+        await PlansDatabase.EnsureMigratedAsync(db, cancellationToken);
         string? error = RevisionLimits.Reject(request.Markdown, request.Summary, null, request.SessionId);
         if (error is not null)
         {
