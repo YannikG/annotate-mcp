@@ -2,6 +2,7 @@
 status: accepted
 sources:
   - https://github.com/YannikG/annotate-mcp/issues/10
+  - https://github.com/YannikG/annotate-mcp/issues/28
 ---
 
 # Spec: Annotate and request changes
@@ -10,6 +11,7 @@ sources:
 
 - Create phrase annotations only from the selection popup (or its keyboard shortcuts).
 - Support deletion, replacement, insertion, and comment kinds.
+- Focus the note textarea when the annotation dialog opens so typing can start without an extra click.
 - Persist annotation drafts for a pending review across navigation and reload.
 - Submit saved drafts as feedback when the reviewer requests changes.
 - Keep Approve unavailable while any annotation remains.
