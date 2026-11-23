@@ -1,6 +1,6 @@
 # Annotating a plan
 
-Select text in the plan document. The selection popup is the only place that creates annotations: deletion, replacement, insertion, or comment. Keyboard shortcuts `d`, `r`, `s`, and `c` call the same commands.
+Select text in the plan document. The selection popup is the only place that creates annotations: deletion, replacement, insertion, or comment. Keyboard shortcuts `d`, `r`, `s`, and `c` call the same commands. The note field is focused when that dialog opens.
 
 ## Drafts and submit
 

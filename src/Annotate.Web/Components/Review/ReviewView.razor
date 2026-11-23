@@ -141,7 +141,7 @@
         <form class="annotate-popover" data-note-dialog role="dialog" aria-modal="true" @attributes="Anchor.Attributes(Model.NotePrompt.Box is null ? null : Anchor.Below(Model.NotePrompt.Box))" @onsubmit="SubmitNote" @onsubmit:preventDefault="true" @onkeydown:stopPropagation="true">
             <h2>@Model.NotePrompt.Title</h2>
             <p data-note-quote>@Model.NotePrompt.Quote</p>
-            <textarea data-note aria-label="@Model.NotePrompt.Title" @oninput="OnNote">@noteDraft</textarea>
+            <textarea @ref="noteField" data-note aria-label="@Model.NotePrompt.Title" @oninput="OnNote">@noteDraft</textarea>
             <div class="dialog-actions">
                 <Button data-cancel OnClick="CancelNote">Cancel</Button>
                 <Button Variant="ButtonVariant.Primary" Type="submit" data-save-note>Save</Button>
@@ -273,6 +273,12 @@
 
     private string? noteQuote;
 
+    private ElementReference noteField;
+
+    private bool noteOpen;
+
+    private bool focusNote;
+
     private bool menuOpen;
 
     private bool actionsOpen;
@@ -290,11 +296,30 @@
     protected override void OnParametersSet()
     {
         if (!Model.Pending) CloseActions();
+        bool open = Model.NotePrompt is not null;
         if (Model.NotePrompt?.Quote != noteQuote)
         {
             noteQuote = Model.NotePrompt?.Quote;
             noteDraft = "";
         }
+
+        if (open && !noteOpen)
+        {
+            focusNote = true;
+        }
+
+        noteOpen = open;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!focusNote)
+        {
+            return;
+        }
+
+        focusNote = false;
+        await noteField.FocusAsync();
     }
 
     private void ToggleMenu() => menuOpen = !menuOpen;
