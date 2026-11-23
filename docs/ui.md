@@ -96,7 +96,7 @@ All live in `src/Annotate.Web/Components/Ui/` and are in scope via `_Imports.raz
 
 ## Downloaded reports
 
-Reports are standalone HTML and cannot link `tokens.css`, so `PlanReportStyles` embeds its own `:root` block mirroring the light theme and uses `var()` everywhere else. `ReportStyleTests` pins every shared token to `tokens.css` and forbids color literals outside the report's `:root` block — change a token and the test tells you to update the report.
+Reports are standalone HTML and cannot link `tokens.css`, so `PlanReportStyles` embeds its own `:root` block mirroring the light theme and uses `var()` everywhere else. `ReportStyleTests` pins every shared token to `tokens.css` and forbids color literals outside the report's `:root` block — change a token and the test tells you to update the report. A mermaid fence in that file is the SVG drawn at download, in the light theme. Enlarge opens that SVG in the same viewer as on the page: zoom, pan, and Recenter. The report inlines the viewer only when the revision contains a mermaid fence, and does not include the Mermaid bundle.
 
 ## Where actions live
 
