@@ -307,10 +307,16 @@
         return Download.InvokeAsync();
     }
 
-    private async Task OnNote(ChangeEventArgs change)
+    private Task OnNote(ChangeEventArgs change)
     {
-        noteDraft = change.Value?.ToString() ?? "";
-        await EditNote.InvokeAsync(noteDraft);
+        string next = change.Value?.ToString() ?? "";
+        if (string.Equals(next, noteDraft, StringComparison.Ordinal))
+        {
+            return Task.CompletedTask;
+        }
+
+        noteDraft = next;
+        return EditNote.InvokeAsync(noteDraft);
     }
 
     private Task SubmitNote() => SaveNote.InvokeAsync(noteDraft);

@@ -6,6 +6,7 @@
 @inject IReportScript Report
 @inject IServiceProvider Services
 @inject NavigationManager Navigation
+@implements IAsyncDisposable
 
 <PageTitle>@(string.IsNullOrEmpty(planTitle) ? "Review" : planTitle) · Annotate</PageTitle>
 
@@ -81,6 +82,7 @@ else if (model is not null)
             return;
         }
 
+        await FlushDrafts(loadedId);
         loadedId = Id;
         drafts.Clear();
         threads.Clear();
